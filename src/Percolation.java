@@ -5,25 +5,30 @@ import edu.princeton.cs.algs4.StdStats;
 public class Percolation {
 
     public int[][][] grid;
-    public boolean[][] gridStatus;
+    public boolean[][] gridOpenStatus;
+    public boolean[][] gridFullStatus;
     public int gridSize;
 
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
         grid = new int[n][n][2];
-        gridStatus = new boolean[n][n];
+        gridOpenStatus = new boolean[n][n];
+        gridFullStatus = new boolean[n][n];
         gridSize = n;    
         for (int r = 0; r < n; r++) {
             // Recreate these each loop or each row will be a shallow copy
             int[][] row = new int[n][2];
-            boolean[] rowStatus = new boolean[n];
+            boolean[] rowOpenStatus = new boolean[n];
+            boolean[] rowFullStatus = new boolean[n];
             for (int c = 0; c < n; c++) {
                 row[c][0] = r;
                 row[c][1] = c;
-                rowStatus[c] = false;
+                rowOpenStatus[c] = false;
+                rowFullStatus[c] = false;
             }
             grid[r] = row;
-            gridStatus[r] = rowStatus;
+            gridOpenStatus[r] = rowOpenStatus;
+            gridFullStatus[r] = rowFullStatus;
         }
     }
 
@@ -31,29 +36,44 @@ public class Percolation {
     public void open(int row, int col) {
         int inputRow = row - 1;
         int inputCol = col - 1;
-        gridStatus[inputRow][inputCol] = true;
+        gridOpenStatus[inputRow][inputCol] = true;
         // Add code to connect with nearby open segments (union)
         connectSites(inputRow, inputCol);
+        // Check if this makes that site full
+        gridFullStatus[inputRow][inputCol] =
+                this.isFull(inputRow+1, inputCol+1);
+        // If that site is full find nearby sites that are open, but not full
+        if (gridFullStatus[inputRow][inputCol]) {
+            int[] farSite = findUnconnectedOpenSites(inputRow, inputCol);
+            // If sites were found connect them to this full site.
+            if (farSite[0] != inputRow || farSite[1] != inputCol) {
+                inputRow = farSite[0];
+                inputCol = farSite[1];
+                connectSites(inputRow, inputCol);
+            }
+        }
     }
 
     // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
-        return gridStatus[row-1][col-1];
+        return gridOpenStatus[row-1][col-1];
     }
 
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
         int startRow = row-1;
         int startCol = col-1;
-        if (startRow == 0 && !gridStatus[startRow][startCol]) {
+        if (startRow == 0 && !gridOpenStatus[startRow][startCol]) {
             return false;
         }
-        int nextRow = grid[row-1][col-1][0];
-        int nextCol = grid[row-1][col-1][1];
-        while (startRow != nextRow && startCol != nextCol) {
+        int nextRow = grid[startRow][startCol][0];
+        int nextCol = grid[startRow][startCol][1];
+        while (startRow != nextRow || startCol != nextCol) {
             connectSites(startRow, startCol);
             startRow = nextRow;
             startCol = nextCol;
+//            nextRow = grid[startRow][startCol][0];
+//            nextCol = grid[startRow][startCol][1];
         }
         if (startRow == 0) {
             return true;
@@ -66,7 +86,7 @@ public class Percolation {
         int openSites = 0;
         for (int r = 0; r < gridSize; r++) {
             for (int c = 0; c < gridSize; c++) {
-                if (gridStatus[r][c]) {
+                if (gridOpenStatus[r][c]) {
                     openSites++;
                 }
             }
@@ -95,28 +115,28 @@ public class Percolation {
     // connect site to other nearby open sites
     private void connectSites(int row, int col) {
         if (row > 0) {
-            if (gridStatus[row-1][col]) {
+            if (gridOpenStatus[row-1][col]) {
                 grid[row][col][0] = grid[row-1][col][0];
                 grid[row][col][1] = grid[row-1][col][1];
                 return;
             }
         }
         if (col > 0) {
-            if (gridStatus[row][col-1]) {
+            if (gridOpenStatus[row][col-1]) {
                 grid[row][col][0] = grid[row][col-1][0];
                 grid[row][col][1] = grid[row][col-1][1];
                 return;
             }
         }
         if (col < 4) {
-            if (gridStatus[row][col+1]) {
+            if (gridOpenStatus[row][col+1]) {
                 grid[row][col][0] = grid[row][col+1][0];
                 grid[row][col][1] = grid[row][col+1][1];
                 return;
             }
         }
         if (row < 4) {
-            if (gridStatus[row+1][col]) {
+            if (gridOpenStatus[row+1][col]) {
                 grid[row][col][0] = grid[row+1][col][0];
                 grid[row][col][1] = grid[row+1][col][1];
                 return;
@@ -124,12 +144,56 @@ public class Percolation {
         }
     }
     
+    // find unconnected open sites around this site, return farthest open site
+    private int[] findUnconnectedOpenSites(int row, int col) {
+        boolean stillUnconnectedSites = true;
+        int[] farthestUnconnectedSite = new int[2];
+        while (stillUnconnectedSites) {
+            if (row < 4) {
+                if ((gridOpenStatus[row+1][col] && !gridFullStatus[row+1][col]) && (
+                    grid[row+1][col][0] == grid[row+1][col][0] &&
+                    grid[row+1][col][1] == grid[row+1][col][1])) {  
+                    row++;
+                    continue;
+                }
+            }
+            if (col > 0) {
+                if ((gridOpenStatus[row][col-1] && !gridFullStatus[row][col-1]) && (
+                    grid[row][col-1][0] == grid[row][col-1][0] &&
+                    grid[row][col-1][1] == grid[row][col-1][1])) {
+                    col--;
+                    continue;
+                }
+            }
+            if (col < 4) {
+                if ((gridOpenStatus[row][col+1] && !gridFullStatus[row][col+1]) && (
+                    grid[row][col+1][0] == grid[row][col+1][0] &&
+                    grid[row][col+1][1] == grid[row][col+1][1])) {
+                    col++;
+                    continue;
+                }
+            }
+            if (row > 0) {
+                if ((gridOpenStatus[row-1][col] && !gridFullStatus[row-1][col]) &&
+                        (grid[row-1][col][0] == grid[row-1][col][0] &&
+                         grid[row-1][col][1] == grid[row-1][col][1])) {
+                    row--; 
+                    continue;
+                }
+            }
+            farthestUnconnectedSite[0] = row;
+            farthestUnconnectedSite[1] = col;
+            stillUnconnectedSites = false;
+        }
+        return farthestUnconnectedSite;
+    }
+    
     // returns string representation with Boolean values showing open status
     public String toString() {
         String output = "";
         for (int r = 0; r < 5; r++) {
             for (int c = 0; c < 5; c++) {
-                output = output + (gridStatus[r][c] + " ");
+                output = output + (gridOpenStatus[r][c] + " ");
             }
             output = output + "\n";
         }
@@ -235,6 +299,7 @@ public class Percolation {
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
         
+        System.out.println(test.isFull(4, 4));
         System.out.println(test.percolates());
     }
 

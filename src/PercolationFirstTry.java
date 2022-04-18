@@ -1,8 +1,12 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
-public class Percolation {
+public class PercolationFirstTry {
 
     public int[][][] grid;
     public boolean[][] gridOpenStatus;
@@ -10,7 +14,7 @@ public class Percolation {
     public int gridSize;
 
     // creates n-by-n grid, with all sites initially blocked
-    public Percolation(int n) {
+    public PercolationFirstTry(int n) {
         grid = new int[n][n][2];
         gridOpenStatus = new boolean[n][n];
         gridFullStatus = new boolean[n][n];
@@ -148,35 +152,44 @@ public class Percolation {
     private int[] findUnconnectedOpenSites(int row, int col) {
         boolean stillUnconnectedSites = true;
         int[] farthestUnconnectedSite = new int[2];
+        HashMap<String,Boolean> seenSites = new HashMap<>();
         while (stillUnconnectedSites) {
             if (row < 4) {
-                if ((gridOpenStatus[row+1][col] && !gridFullStatus[row+1][col]) && (
-                    grid[row+1][col][0] == grid[row+1][col][0] &&
-                    grid[row+1][col][1] == grid[row+1][col][1])) {  
+                if ((gridOpenStatus[row+1][col] && !gridFullStatus[row+1][col])
+                        && (seenSites.containsKey(grid[row+1][col][0] + "," +
+                        grid[row+1][col][1]))) {  
+                    seenSites.put(grid[row+1][col][0] + "," +
+                        grid[row+1][col][1], true);
                     row++;
                     continue;
                 }
             }
             if (col > 0) {
-                if ((gridOpenStatus[row][col-1] && !gridFullStatus[row][col-1]) && (
-                    grid[row][col-1][0] == grid[row][col-1][0] &&
-                    grid[row][col-1][1] == grid[row][col-1][1])) {
+                if ((gridOpenStatus[row][col-1] && !gridFullStatus[row][col-1])
+                        && (!seenSites.containsKey(grid[row][col-1][0] + "," +
+                        grid[row][col-1][1]))) {  
+                    seenSites.put(grid[row][col-1][0] + "," +
+                        grid[row][col-1][1], true);
                     col--;
                     continue;
                 }
             }
             if (col < 4) {
-                if ((gridOpenStatus[row][col+1] && !gridFullStatus[row][col+1]) && (
-                    grid[row][col+1][0] == grid[row][col+1][0] &&
-                    grid[row][col+1][1] == grid[row][col+1][1])) {
+                if ((gridOpenStatus[row][col+1] && !gridFullStatus[row][col+1])
+                        && (!seenSites.containsKey(grid[row][col+1][0] + "," +
+                        grid[row][col+1][1]))) {  
+                    seenSites.put(grid[row][col+1][0] + "," +
+                        grid[row][col+1][1], true);
                     col++;
                     continue;
                 }
             }
             if (row > 0) {
-                if ((gridOpenStatus[row-1][col] && !gridFullStatus[row-1][col]) &&
-                        (grid[row-1][col][0] == grid[row-1][col][0] &&
-                         grid[row-1][col][1] == grid[row-1][col][1])) {
+                if ((gridOpenStatus[row-1][col] && !gridFullStatus[row-1][col])
+                        && (!seenSites.containsKey(grid[row-1][col][0] + "," +
+                        grid[row-1][col][1]))) {  
+                    seenSites.put(grid[row-1][col][0] + "," +
+                        grid[row-1][col][1], true);
                     row--; 
                     continue;
                 }
@@ -216,38 +229,38 @@ public class Percolation {
 
     // test client (optional)
     public static void main(String[] args) {
-        Percolation test = new Percolation(5);
+        PercolationFirstTry test = new PercolationFirstTry(5);
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
         
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("--------------");
         
-        test.open(1, 5);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(2, 5);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(3, 5);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(4, 5);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(1, 4);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
+//        test.open(1, 5);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
+//        test.open(2, 5);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
+//        test.open(3, 5);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
+//        test.open(4, 5);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
+//        test.open(1, 4);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
 //        test.open(1, 3);
 //        System.out.println("output:" + "\n" + test.getGrid());
 //        System.out.println("output:" + "\n" + test);
@@ -278,11 +291,11 @@ public class Percolation {
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
         
-        test.open(4, 4);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
+//        test.open(4, 4);
+//        System.out.println("output:" + "\n" + test.getGrid());
+//        System.out.println("output:" + "\n" + test);
+//        System.out.println("--------------");
+//        
 //        test.open(5, 4);
 //        System.out.println("output:" + "\n" + test.getGrid());
 //        System.out.println("output:" + "\n" + test);

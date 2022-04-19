@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.StdStats;
 public class Percolation {
 
     private WeightedQuickUnionUF grid;
+//    private WeightedQuickUnionUF gridFull;
     private boolean[] gridStatus;
     private int rowSize;
     private int gridSize;
@@ -16,6 +17,7 @@ public class Percolation {
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
         grid = new WeightedQuickUnionUF(n*n + 2);
+//        gridFull = new WeightedQuickUnionUF(n*n + 1);
         gridStatus = new boolean[n*n + 2];
         rowSize = n;
         gridSize = n*n;
@@ -49,7 +51,7 @@ public class Percolation {
     public boolean isFull(int row, int col) {
         validate(row, col);
         int rootCell = grid.find(convertRowCol(row, col));
-        return rootCell == virtualTop;
+        return rootCell == grid.find(virtualTop);
     }
 
     // returns the number of open sites
@@ -59,7 +61,7 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return grid.find(virtualBottom) == virtualTop;
+        return grid.find(virtualBottom) == grid.find(virtualTop);
     }
     
     // convert (row, int) into just (row)
@@ -84,21 +86,26 @@ public class Percolation {
         
         if (row == 1) {
             grid.union(virtualTop, convertRowCol(row, col));
+//            gridFull.union(virtualTop, convertRowCol(row, col));
         }
         if (row == rowSize) {
             grid.union(virtualBottom, convertRowCol(row, col));
         }
         if (col > 1 && gridStatus[convertRowCol(row, col-1)]) {
-                grid.union(convertRowCol(row, col), convertRowCol(row, col-1));
+            grid.union(convertRowCol(row, col), convertRowCol(row, col-1));
+//            gridFull.union(convertRowCol(row, col), convertRowCol(row, col-1));
             }
         if (col < 5 && gridStatus[convertRowCol(row, col+1)]) {
-                grid.union(convertRowCol(row, col), convertRowCol(row, col+1));
+            grid.union(convertRowCol(row, col), convertRowCol(row, col+1));
+//            gridFull.union(convertRowCol(row, col), convertRowCol(row, col+1));
             }
         if (row > 1 && gridStatus[convertRowCol(row-1, col)]) {
             grid.union(convertRowCol(row, col), convertRowCol(row-1, col));
+//            gridFull.union(convertRowCol(row, col), convertRowCol(row-1, col));
         }
         if (row < 5 && gridStatus[convertRowCol(row+1, col)]) {
-                grid.union(convertRowCol(row, col), convertRowCol(row+1, col));
+            grid.union(convertRowCol(row, col), convertRowCol(row+1, col));
+//            gridFull.union(convertRowCol(row, col), convertRowCol(row+1, col));
             }
     }
     
@@ -233,7 +240,7 @@ public class Percolation {
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("--------------");
         
-        test.open(1, 3);
+        test.open(5, 3);
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
@@ -253,7 +260,7 @@ public class Percolation {
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
         
-        test.open(5, 3);
+        test.open(1, 3);
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");

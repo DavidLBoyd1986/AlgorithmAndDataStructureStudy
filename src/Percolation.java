@@ -10,6 +10,8 @@ public class Percolation {
     private int rowSize;
     private int gridSize;
     private int numOpenSites;
+    private int virtualTop;
+    private int virtualBottom;
     
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
@@ -18,14 +20,22 @@ public class Percolation {
         rowSize = n;
         gridSize = n*n;
         numOpenSites = 0;
+        virtualTop = 0;
+        virtualBottom = gridSize + 1;
+        gridStatus[virtualTop] = true;
+        gridStatus[virtualBottom] = true;
+        //connectSourceAndSink();
     }
 
     // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
         validate(row, col);
+        if (isOpen(row, col)) {
+            return;
+        }
         gridStatus[convertRowCol(row, col)] = true;
-        connectSites(row, col);
         numOpenSites++;
+        connectSites(row, col);
         return;
     }
 
@@ -39,7 +49,7 @@ public class Percolation {
     public boolean isFull(int row, int col) {
         validate(row, col);
         int rootCell = grid.find(convertRowCol(row, col));
-        return (rootCell <= rowSize && gridStatus[rootCell]);
+        return rootCell == virtualTop;
     }
 
     // returns the number of open sites
@@ -49,12 +59,7 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        for (int r = 1; r <= rowSize; r++) {
-            if (this.isFull(5, r)) {
-                return true;
-            }
-        }
-        return false;
+        return grid.find(virtualBottom) == virtualTop;
     }
     
     // convert (row, int) into just (row)
@@ -76,22 +81,39 @@ public class Percolation {
     
     // connect site to other nearby open sites
     private void connectSites(int row, int col) {
-        if (row > 1 && gridStatus[convertRowCol(row-1, col)]) {
-                grid.union(convertRowCol(row-1, col), convertRowCol(row, col));
-                return;
-            }
+        
+        if (row == 1) {
+            grid.union(virtualTop, convertRowCol(row, col));
+        }
+        if (row == rowSize) {
+            grid.union(virtualBottom, convertRowCol(row, col));
+        }
         if (col > 1 && gridStatus[convertRowCol(row, col-1)]) {
-                grid.union(convertRowCol(row, col-1), convertRowCol(row, col));
-                return;
+                grid.union(convertRowCol(row, col), convertRowCol(row, col-1));
             }
         if (col < 5 && gridStatus[convertRowCol(row, col+1)]) {
-                grid.union(convertRowCol(row, col+1), convertRowCol(row, col));
-                return;
+                grid.union(convertRowCol(row, col), convertRowCol(row, col+1));
             }
+        if (row > 1 && gridStatus[convertRowCol(row-1, col)]) {
+            grid.union(convertRowCol(row, col), convertRowCol(row-1, col));
+        }
         if (row < 5 && gridStatus[convertRowCol(row+1, col)]) {
-                grid.union(convertRowCol(row+1, col), convertRowCol(row, col));
-                return;
+                grid.union(convertRowCol(row, col), convertRowCol(row+1, col));
             }
+    }
+    
+    // start from 0 and connect sites downward until get to the requested site
+    private void connectSourceAndSink() {
+        for (int c = 1; c <= rowSize; c++) {
+            grid.union(0, c);
+        }
+        int finalRow = (gridSize - rowSize)+1;
+//        for (int r = finalRow; r <= gridSize; r++) {
+//            grid.union(gridSize+1, r);
+//        }
+        gridStatus[0] = true;
+        gridStatus[gridSize+1] = true;
+        return;
     }
     
     // returns grid representation with int values showing segments
@@ -100,9 +122,11 @@ public class Percolation {
         output = output + ("[");
         for (int r = 1; r <= gridSize; r++) { 
             int row = grid.find(r);
-            output = output + (" " + row + ", ");
+            output = output + (" " + row + " ");
             if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
         }
+        output = output + "\n" + "Source = [ " + grid.find(0) + " ]";
+        output = output + "\n" + "Sink = [ " + grid.find(gridSize+1) + " ]";
         return output;
     }
 
@@ -111,9 +135,11 @@ public class Percolation {
         output = output + ("[");
         for (int r = 1; r <= gridSize; r++) { 
             boolean row = gridStatus[r];
-            output = output + (" " + row + ", ");
+            output = output + (" " + row + " ");
             if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
         }
+        output = output + "\n" + "Source = [ " + gridStatus[0] + " ]";
+        output = output + "\n" + "Sink = [ " + gridStatus[gridSize+1] + " ]";
         return output;
     }
 
@@ -207,17 +233,7 @@ public class Percolation {
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("--------------");
         
-        test.open(5, 3);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(4, 3);
-        System.out.println("output:" + "\n" + test.getGrid());
-        System.out.println("output:" + "\n" + test);
-        System.out.println("--------------");
-        
-        test.open(3, 3);
+        test.open(1, 3);
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
@@ -227,7 +243,17 @@ public class Percolation {
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");
         
-        test.open(1, 3);
+        test.open(3, 3);
+        System.out.println("output:" + "\n" + test.getGrid());
+        System.out.println("output:" + "\n" + test);
+        System.out.println("--------------");
+        
+        test.open(4, 3);
+        System.out.println("output:" + "\n" + test.getGrid());
+        System.out.println("output:" + "\n" + test);
+        System.out.println("--------------");
+        
+        test.open(5, 3);
         System.out.println("output:" + "\n" + test.getGrid());
         System.out.println("output:" + "\n" + test);
         System.out.println("--------------");

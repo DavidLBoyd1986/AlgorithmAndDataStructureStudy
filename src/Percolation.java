@@ -1,20 +1,22 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
-import edu.princeton.cs.algs4.QuickFindUF;
 
 
 public class Percolation {
 
-    private WeightedQuickUnionUF grid;
-    private WeightedQuickUnionUF gridFull;
+    final private WeightedQuickUnionUF grid;
+    final private WeightedQuickUnionUF gridFull;
     private boolean[] gridStatus;
-    private int rowSize;
-    private int gridSize;
+    final private int rowSize;
+    final private int gridSize;
     private int numOpenSites;
-    private int virtualTop;
-    private int virtualBottom;
+    final private int virtualTop;
+    final private int virtualBottom;
     
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException("n can't be less than 1.");
+        }
         grid = new WeightedQuickUnionUF(n*n + 2);
         gridFull = new WeightedQuickUnionUF(n*n + 1);
         gridStatus = new boolean[n*n + 2];
@@ -48,7 +50,7 @@ public class Percolation {
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
         validate(row, col);
-        int rootCell = grid.find(convertRowCol(row, col));
+        int rootCell = gridFull.find(convertRowCol(row, col));
         return rootCell == gridFull.find(virtualTop);
     }
 
@@ -93,7 +95,7 @@ public class Percolation {
             grid.union(convertRowCol(row, col), convertRowCol(row, col-1));
             gridFull.union(convertRowCol(row, col), convertRowCol(row, col-1));
             }
-        if (col < 5 && gridStatus[convertRowCol(row, col+1)]) {
+        if (col < rowSize && gridStatus[convertRowCol(row, col+1)]) {
             grid.union(convertRowCol(row, col), convertRowCol(row, col+1));
             gridFull.union(convertRowCol(row, col), convertRowCol(row, col+1));
             }
@@ -101,7 +103,7 @@ public class Percolation {
             grid.union(convertRowCol(row, col), convertRowCol(row-1, col));
             gridFull.union(convertRowCol(row, col), convertRowCol(row-1, col));
         }
-        if (row < 5 && gridStatus[convertRowCol(row+1, col)]) {
+        if (row < rowSize && gridStatus[convertRowCol(row+1, col)]) {
             grid.union(convertRowCol(row, col), convertRowCol(row+1, col));
             gridFull.union(convertRowCol(row, col), convertRowCol(row+1, col));
             }
@@ -113,7 +115,7 @@ public class Percolation {
         for (int r = 1; r <= gridSize; r++) { 
             boolean row = gridStatus[r];
             output = output + (" " + row + " ");
-            if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
+            if ((r % (gridSize/rowSize)) == 0) { output = output + ("]" + "\n" + "["); }
         }
         output = output + "\n" + "Source = [ " + gridStatus[0] + " ]";
         output = output + "\n" + "Sink = [ " + gridStatus[gridSize+1] + " ]";

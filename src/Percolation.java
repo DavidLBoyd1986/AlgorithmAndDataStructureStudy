@@ -110,31 +110,53 @@ public class Percolation {
     }
 
     public String toString() {  
-        String output = "";
-        output = output + ("[");
+        StringBuilder output = new StringBuilder();
+        output.append("\nSource = [ ");
+        output.append(gridStatus[0]);
+        output.append(" ]\n");
+        output.append("[");
         for (int r = 1; r <= gridSize; r++) { 
             boolean row = gridStatus[r];
-            output = output + (" " + row + " ");
-            if ((r % (gridSize/rowSize)) == 0) { output = output + ("]" + "\n" + "["); }
+            output.append(" ");
+            output.append(row);
+            output.append(" ");
+            if ((r % (gridSize/rowSize)) == 0) {
+                output.append("]\n");
+                if (r != gridSize) {
+                    output.append("[");
+                }
+            }
         }
-        output = output + "\n" + "Source = [ " + gridStatus[0] + " ]";
-        output = output + "\n" + "Sink = [ " + gridStatus[gridSize+1] + " ]";
-        return output;
+        output.append("Sink = [ ");
+        output.append(gridStatus[gridSize+1]);
+        output.append(" ]");
+        return output.toString();
     }
 
     // returns grid representation with int values showing segments
-//  public String getGrid() {
-//      String output = "";
-//      output = output + ("[");
-//      for (int r = 1; r <= gridSize; r++) { 
-//          int row = grid.find(r);
-//          output = output + (" " + row + " ");
-//          if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
-//      }
-//      output = output + "\n" + "Source = [ " + grid.find(0) + " ]";
-//      output = output + "\n" + "Sink = [ " + grid.find(gridSize+1) + " ]";
-//      return output;
-//  }
+  private String getGrid() {
+      StringBuilder output = new StringBuilder();
+      output.append("\nSource = [ ");
+      output.append(grid.find(0));
+      output.append(" ]\n");
+      output.append("[");
+      for (int r = 1; r <= gridSize; r++) { 
+          int row = grid.find(r);
+          output.append(" ");
+          output.append(row);
+          output.append(" ");
+          if ((r % (gridSize/rowSize)) == 0) {
+              output.append("]\n");
+              if (r != gridSize) {
+                  output.append("[");
+              }
+          }
+      }
+      output.append("Sink = [ ");
+      output.append(grid.find(gridSize+1));
+      output.append(" ]");
+      return output.toString();
+  }
 
     // test client (optional)
     public static void main(String[] args) {

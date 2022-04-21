@@ -1,20 +1,22 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
-import edu.princeton.cs.algs4.QuickFindUF;
 
 
 public class Percolation {
 
-    private WeightedQuickUnionUF grid;
-    private WeightedQuickUnionUF gridFull;
+    private final WeightedQuickUnionUF grid;
+    private final WeightedQuickUnionUF gridFull;
     private boolean[] gridStatus;
-    private int rowSize;
-    private int gridSize;
+    private final int rowSize;
+    private final int gridSize;
+    private final int virtualTop;
+    private final int virtualBottom;
     private int numOpenSites;
-    private int virtualTop;
-    private int virtualBottom;
     
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException("n can't be less than 1.");
+        }
         grid = new WeightedQuickUnionUF(n*n + 2);
         gridFull = new WeightedQuickUnionUF(n*n + 1);
         gridStatus = new boolean[n*n + 2];
@@ -48,7 +50,7 @@ public class Percolation {
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
         validate(row, col);
-        int rootCell = grid.find(convertRowCol(row, col));
+        int rootCell = gridFull.find(convertRowCol(row, col));
         return rootCell == gridFull.find(virtualTop);
     }
 
@@ -93,7 +95,7 @@ public class Percolation {
             grid.union(convertRowCol(row, col), convertRowCol(row, col-1));
             gridFull.union(convertRowCol(row, col), convertRowCol(row, col-1));
             }
-        if (col < 5 && gridStatus[convertRowCol(row, col+1)]) {
+        if (col < rowSize && gridStatus[convertRowCol(row, col+1)]) {
             grid.union(convertRowCol(row, col), convertRowCol(row, col+1));
             gridFull.union(convertRowCol(row, col), convertRowCol(row, col+1));
             }
@@ -101,38 +103,60 @@ public class Percolation {
             grid.union(convertRowCol(row, col), convertRowCol(row-1, col));
             gridFull.union(convertRowCol(row, col), convertRowCol(row-1, col));
         }
-        if (row < 5 && gridStatus[convertRowCol(row+1, col)]) {
+        if (row < rowSize && gridStatus[convertRowCol(row+1, col)]) {
             grid.union(convertRowCol(row, col), convertRowCol(row+1, col));
             gridFull.union(convertRowCol(row, col), convertRowCol(row+1, col));
             }
     }
 
     public String toString() {  
-        String output = "";
-        output = output + ("[");
+        StringBuilder output = new StringBuilder();
+        output.append("\nSource = [ ");
+        output.append(gridStatus[0]);
+        output.append(" ]\n");
+        output.append("[");
         for (int r = 1; r <= gridSize; r++) { 
             boolean row = gridStatus[r];
-            output = output + (" " + row + " ");
-            if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
+            output.append(" ");
+            output.append(row);
+            output.append(" ");
+            if ((r % (gridSize/rowSize)) == 0) {
+                output.append("]\n");
+                if (r != gridSize) {
+                    output.append("[");
+                }
+            }
         }
-        output = output + "\n" + "Source = [ " + gridStatus[0] + " ]";
-        output = output + "\n" + "Sink = [ " + gridStatus[gridSize+1] + " ]";
-        return output;
+        output.append("Sink = [ ");
+        output.append(gridStatus[gridSize+1]);
+        output.append(" ]");
+        return output.toString();
     }
 
     // returns grid representation with int values showing segments
-//  public String getGrid() {
-//      String output = "";
-//      output = output + ("[");
-//      for (int r = 1; r <= gridSize; r++) { 
-//          int row = grid.find(r);
-//          output = output + (" " + row + " ");
-//          if ((r%(gridSize/rowSize)) == 0 ) { output = output + ("]" + "\n" + "["); }
-//      }
-//      output = output + "\n" + "Source = [ " + grid.find(0) + " ]";
-//      output = output + "\n" + "Sink = [ " + grid.find(gridSize+1) + " ]";
-//      return output;
-//  }
+  private String getGrid() {
+      StringBuilder output = new StringBuilder();
+      output.append("\nSource = [ ");
+      output.append(grid.find(0));
+      output.append(" ]\n");
+      output.append("[");
+      for (int r = 1; r <= gridSize; r++) { 
+          int row = grid.find(r);
+          output.append(" ");
+          output.append(row);
+          output.append(" ");
+          if ((r % (gridSize/rowSize)) == 0) {
+              output.append("]\n");
+              if (r != gridSize) {
+                  output.append("[");
+              }
+          }
+      }
+      output.append("Sink = [ ");
+      output.append(grid.find(gridSize+1));
+      output.append(" ]");
+      return output.toString();
+  }
 
     // test client (optional)
     public static void main(String[] args) {

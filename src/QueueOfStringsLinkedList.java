@@ -43,15 +43,15 @@ public class QueueOfStringsLinkedList {
         QueueOfStringsLinkedList test = new QueueOfStringsLinkedList();
         test.enqueue("I");
         test.enqueue(" really ");
-        test.enqueue("hate");
-        test.enqueue(" managers ");
-        test.enqueue("named");
-        test.enqueue(" Pete!!! ");
-        test.enqueue("They\'re");
+        test.enqueue("love");
+        test.enqueue(" steak ");
+        test.enqueue("that\'s");
+        test.enqueue(" Rare!!! ");
+        test.enqueue("It\'s");
         test.enqueue(" always ");
-        test.enqueue("massive");
-        test.enqueue(" corporate ");
-        test.enqueue("bootlickers!!!!!!");
+        test.enqueue("so");
+        test.enqueue(" juicy ");
+        test.enqueue("Yummy!!!!!!");  
         
         while (!test.isEmpty()) {
             System.out.print(test.dequeue());

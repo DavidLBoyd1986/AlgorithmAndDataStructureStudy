@@ -2,6 +2,7 @@ import edu.princeton.cs.algs4.StdRandom;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private Item[] queue;
@@ -29,6 +30,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // add the item
     public void enqueue(Item item) {
+        if (item == null) {
+            throw new IllegalArgumentException("enqued Item can't be null");
+        }
         queue[end_position] = item;
         end_position++;
         size++;
@@ -39,6 +43,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // remove and return a random item
     public Item dequeue() {
+        if (isEmpty()) {
+            throw new NoSuchElementException("Queue is empty, nothing to deque");
+        }
         int item_position = StdRandom.uniform(start_position, end_position);
         Item return_item = queue[item_position];
         queue[item_position] = queue[end_position-1];
@@ -51,7 +58,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         return return_item;
     }
     
-    public void resize(int new_size) {
+    private void resize(int new_size) {
         Item[] copy = (Item[]) new Object[new_size];
         for (int i = 0; i < size; i++) {
             copy[i] = queue[start_position];
@@ -64,6 +71,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // return a random item (but do not remove it)
     public Item sample() {
+        if (isEmpty()) {
+            throw new NoSuchElementException("Queue is empty, nothing to deque");
+        }
         int item_position = StdRandom.uniform(end_position) + start_position;
         Item return_item = queue[item_position];
         return return_item;
@@ -92,6 +102,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         public Item[] shuffle(Item[] copy_queue, int start, int end) {
           StdRandom.shuffle(copy_queue, start, end);
           return copy_queue;
+        }
+        
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
         
     }

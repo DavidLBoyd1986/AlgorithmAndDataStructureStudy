@@ -6,15 +6,15 @@ import java.util.NoSuchElementException;
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private Item[] queue;
-    private int start_position = 0;
-    private int end_position = 0;
+    private int startPosition = 0;
+    private int endPosition = 0;
     private int size = 0;
     
     // construct an empty randomized queue
     public RandomizedQueue() {
         queue = (Item[]) new Object[1];
-        start_position = 0;
-        end_position = 0;
+        startPosition = 0;
+        endPosition = 0;
         size = 0;
     }
 
@@ -33,10 +33,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         if (item == null) {
             throw new IllegalArgumentException("enqued Item can't be null");
         }
-        queue[end_position] = item;
-        end_position++;
+        queue[endPosition] = item;
+        endPosition++;
         size++;
-        if (end_position == queue.length) {
+        if (endPosition == queue.length) {
             resize(queue.length * 2);
         }
     }
@@ -46,26 +46,26 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("Queue is empty, nothing to deque");
         }
-        int item_position = StdRandom.uniform(start_position, end_position);
-        Item return_item = queue[item_position];
-        queue[item_position] = queue[end_position-1];
-        queue[end_position-1] = null;
-        end_position--;
+        int itemPosition = StdRandom.uniform(startPosition, endPosition);
+        Item returnItem = queue[itemPosition];
+        queue[itemPosition] = queue[endPosition-1];
+        queue[endPosition-1] = null;
+        endPosition--;
         size--;
         if (size <= queue.length/4) {
             resize(queue.length/2);
         }
-        return return_item;
+        return returnItem;
     }
     
-    private void resize(int new_size) {
-        Item[] copy = (Item[]) new Object[new_size];
+    private void resize(int newSize) {
+        Item[] copy = (Item[]) new Object[newSize];
         for (int i = 0; i < size; i++) {
-            copy[i] = queue[start_position];
-            start_position++;
+            copy[i] = queue[startPosition];
+            startPosition++;
         }
-        start_position = 0;
-        end_position = size;
+        startPosition = 0;
+        endPosition = size;
         queue = copy;
     }
 
@@ -74,9 +74,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("Queue is empty, nothing to deque");
         }
-        int item_position = StdRandom.uniform(end_position) + start_position;
-        Item return_item = queue[item_position];
-        return return_item;
+        int itemPosition = StdRandom.uniform(endPosition) + startPosition;
+        Item returnItem = queue[itemPosition];
+        return returnItem;
     }
 
     // return an independent iterator over items in random order
@@ -86,24 +86,23 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     
     private class RandomArrayIterator implements Iterator<Item> {
 
-        private int copy_size;
-        Item [] copy_queue;
+        int copySize;
+        Item [] copyQueue;
         
         private RandomArrayIterator() {
-        copy_size = size;
-        
-        copy_queue = queue.clone();
-        StdRandom.shuffle(copy_queue, start_position, end_position);
+        copySize = size;
+        copyQueue = queue.clone();
+        StdRandom.shuffle(copyQueue, startPosition, endPosition);
         }
         
         
         public boolean hasNext() {
-            return copy_size > 0;
+            return copySize > 0;
         }
 
         public Item next() {
             if (!hasNext()) throw new NoSuchElementException();
-            return copy_queue[--copy_size];
+            return copyQueue[--copySize];
         }
         
 //        public Item[] shuffle(Item[] copy_queue, int start, int end) {

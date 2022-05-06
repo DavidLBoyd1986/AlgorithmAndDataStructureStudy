@@ -1,7 +1,7 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class Deque<Item> implements Iterable<Item>{
+public class Deque<Item> implements Iterable<Item> {
     
     private Node first;
     private Node last;
@@ -36,10 +36,10 @@ public class Deque<Item> implements Iterable<Item>{
             throw new IllegalArgumentException();
         }
         // Add new Node like normal and increase size
-        Node old_first = first;
+        Node oldFirst = first;
         first = new Node();
         first.item = item;
-        first.next = old_first;
+        first.next = oldFirst;
         size++;
         // If it's the first Node make last Node = first Node
         if (last == null) {
@@ -49,7 +49,7 @@ public class Deque<Item> implements Iterable<Item>{
         if (first.next == null) {
             return;
         }
-        old_first.previous = first;
+        oldFirst.previous = first;
     }
 
     // add the item to the back
@@ -58,10 +58,10 @@ public class Deque<Item> implements Iterable<Item>{
             throw new IllegalArgumentException();
         }
         // Add new Node like normal and increase size
-        Node old_last = last;
+        Node oldLast = last;
         last = new Node();
         last.item = item;
-        last.previous = old_last;
+        last.previous = oldLast;
         size++;
         // If it's first node, make the first Node = last Node
         if (first == null) {
@@ -71,7 +71,7 @@ public class Deque<Item> implements Iterable<Item>{
         if (last.previous == null) {
             return;
         }
-        old_last.next = last;
+        oldLast.next = last;
     }
 
     // remove and return the item from the front
@@ -119,7 +119,7 @@ public class Deque<Item> implements Iterable<Item>{
         return new LinkedListIterator();
     }
 
-    private class LinkedListIterator implements Iterator<Item>{
+    private class LinkedListIterator implements Iterator<Item> {
         
         private Node current = first;
         

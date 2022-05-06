@@ -86,12 +86,19 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     
     private class RandomArrayIterator implements Iterator<Item> {
 
-        private int copy_size = size;
-        Item [] copy_queue = shuffle(queue, start_position, end_position);
+        private int copy_size;
+        Item [] copy_queue;
+        
+        private RandomArrayIterator() {
+        copy_size = size;
+        
+        copy_queue = queue.clone();
+        StdRandom.shuffle(copy_queue, start_position, end_position);
+        }
         
         
         public boolean hasNext() {
-            return !(copy_size == 0);
+            return copy_size > 0;
         }
 
         public Item next() {
@@ -99,10 +106,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             return copy_queue[--copy_size];
         }
         
-        public Item[] shuffle(Item[] copy_queue, int start, int end) {
-          StdRandom.shuffle(copy_queue, start, end);
-          return copy_queue;
-        }
+//        public Item[] shuffle(Item[] copy_queue, int start, int end) {
+//          StdRandom.shuffle(copy_queue, start, end);
+//          return copy_queue;
+//        }
         
         public void remove() {
             throw new UnsupportedOperationException();
@@ -122,6 +129,22 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         test.enqueue("Seventh");
         test.enqueue("Eight");
         test.enqueue("Ninth");
+        test.enqueue("Tenth");
+        System.out.println(" ");
+        for (String s : test) {
+            System.out.println(s);
+            for (String z : test) {
+                System.out.println(z);
+            }
+        }
+        System.out.println(" ");
+        System.out.println("----------------------");
+        System.out.println(" ");
+        for (String z : test) {
+            System.out.println(z);
+        }
+        System.out.println("-----------------------------");
+        System.out.println(" ");
         System.out.println(test.dequeue());
         System.out.println(test.dequeue());
         System.out.println(test.dequeue());
@@ -139,9 +162,6 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         for (String s : test) {
             System.out.println(s);
         }
-        System.out.println(" ");
-        for (String s : test) {
-            System.out.println(s);
-        }
+
     }
 }

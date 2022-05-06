@@ -87,12 +87,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private class RandomArrayIterator implements Iterator<Item> {
 
         int copySize;
-        Item [] copyQueue;
+        int[] iteratorQueue;
         
         private RandomArrayIterator() {
         copySize = size;
-        copyQueue = queue.clone();
-        StdRandom.shuffle(copyQueue, startPosition, endPosition);
+        iteratorQueue = new int[size];
+        iteratorQueue = StdRandom.permutation(size);
         }
         
         
@@ -102,13 +102,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
         public Item next() {
             if (!hasNext()) throw new NoSuchElementException();
-            return copyQueue[--copySize];
+            return queue[iteratorQueue[--copySize]];
         }
-        
-//        public Item[] shuffle(Item[] copy_queue, int start, int end) {
-//          StdRandom.shuffle(copy_queue, start, end);
-//          return copy_queue;
-//        }
         
         public void remove() {
             throw new UnsupportedOperationException();
@@ -131,9 +126,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         test.enqueue("Tenth");
         System.out.println(" ");
         for (String s : test) {
-            System.out.println(s);
             for (String z : test) {
-                System.out.println(z);
+                System.out.println(s + "-" + z);
             }
         }
         System.out.println(" ");

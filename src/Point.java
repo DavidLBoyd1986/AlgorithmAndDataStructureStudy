@@ -104,7 +104,7 @@ public class Point implements Comparable<Point> {
            return Double.NEGATIVE_INFINITY;
        }
        // Calculate slope and return it. Might need to change to use double in formula instead of int.
-       double slope = (that.y - this.y) / (that.x - this.x);
+       double slope = ((double) that.y - this.y) / ((double) that.x - this.x);
        return slope;
    }
    
@@ -201,9 +201,21 @@ public class Point implements Comparable<Point> {
        test1.drawTo(test4);
        Point test6 = new Point(1,1);
        Point test7 = new Point(2,1);
+       Point test9 = new Point(1,0);
+       Point test10 = new Point(2,0);
+       Point test11 = new Point(3,0);
+       Point test12 = new Point(4,0);
+       Point test13 = new Point(5,0);
        test6.draw();
        test7.draw();
        test6.drawTo(test7);
+       // Horizontal
+       System.out.println(test1.slopeTo(test9));
+       System.out.println(test1.slopeTo(test10));
+       System.out.println(test1.slopeTo(test11));
+       System.out.println(test1.slopeTo(test12));
+       System.out.println(test1.slopeTo(test13));
+       
    }
 
 

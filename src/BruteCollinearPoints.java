@@ -10,6 +10,7 @@ import edu.princeton.cs.algs4.StdOut;
 public class BruteCollinearPoints {
 
     // This would have to be a resizing array
+    resizingSegmentArray segmentsResizingArray;
     LineSegment[] segments;
     int segmentArraySize;
 
@@ -19,7 +20,7 @@ public class BruteCollinearPoints {
             throw new IllegalArgumentException("Argument 'points' is null");
         }
         // This might need to be a resizing array
-        segments = new LineSegment[points.length];
+        segmentsResizingArray = new resizingSegmentArray();
         segmentArraySize = 0;
         
         //Copy array to make a 2nd array that can be sorted. So, not sorting an array that is being iterated upon.
@@ -33,34 +34,33 @@ public class BruteCollinearPoints {
             copyPoints[i] = points[i];
         }
         
-        //To find a line compare slopes. For a point, if the slope to 3 other points are equal, that's a line
-        for (int point = 0; point < points.length; point++) {
-            if (points[point] == null) {
-                throw new IllegalArgumentException("point " + point + " in points array is null");
-            }
-            //Sort points array by SlopeComparator to this point
-            Comparator<Point> pointComparator = points[point].slopeOrder();
-            Arrays.sort(copyPoints, pointComparator);
-            //troubleshooting step
-            System.out.println("Outerloop: " + point);
-            for (int i = 1; i < copyPoints.length-3; i++) {
-                System.out.println(copyPoints[0].slopeTo(copyPoints[i]));
-//                System.out.println(copyPoints[0].slopeTo(copyPoints[i+2]));
-//                System.out.println(copyPoints[0].slopeTo(copyPoints[i+3]));
-//                System.out.println("----------------");
-            }
-            
-            // Should only use point[0] as reference since that's what it was sorted by
-            for (int pos = 0; pos < 4; pos++) {
-                if (copyPoints[0].slopeTo(copyPoints[pos+1]) == copyPoints[0].slopeTo(copyPoints[pos+2]) &&
-                        copyPoints[0].slopeTo(copyPoints[pos+2]) == copyPoints[0].slopeTo(copyPoints[pos+3])) {
-                    segments[segmentArraySize] = new LineSegment(copyPoints[pos], copyPoints[pos+3]);
-                    segmentArraySize++;
-                    
+        //Loop four points in nested loops to compare every implementation
+        for (int pointOne = 0; pointOne < points.length; pointOne++) {
+            for (int pointTwo = pointOne+1; pointTwo < points.length; pointTwo++) {
+                for (int pointThree = pointOne+2; pointThree < points.length; pointThree++) {
+                    for (int pointFour = pointOne+3; pointFour < points.length; pointFour++) {
+                        //troubleshooting step
+                        System.out.println("Outerloop: " + pointOne);
+                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointTwo]));
+                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointThree]));
+                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointFour]));
+                        System.out.println("----------------");
+                            
+                        // If the slope of all four points are equal it's a line
+                        if (copyPoints[pointOne].slopeTo(copyPoints[pointTwo]) == copyPoints[pointOne].slopeTo(copyPoints[pointThree]) &&
+                                copyPoints[pointOne].slopeTo(copyPoints[pointThree]) == copyPoints[pointOne].slopeTo(copyPoints[pointFour])) {
+                            segmentsResizingArray.add(new LineSegment(copyPoints[pointOne], copyPoints[pointFour]));
+                            segmentArraySize++;
+                            }
+                        }
+                    }
                 }
             }
-            
-        }
+    
+        segments = new LineSegment[segmentsResizingArray.size()];
+        for (int i = 0; i < numberOfSegments(); i++) {
+            segments[i] = segmentsResizingArray.remove();
+        }          
     }
     
     
@@ -75,6 +75,51 @@ public class BruteCollinearPoints {
         return segments;
     }
     
+    
+    // resizing segment array
+    private class resizingSegmentArray{
+        
+        private LineSegment[] array;
+        private int size;
+        
+        
+        resizingSegmentArray() {
+            array = new LineSegment[1];
+            size = 0;
+        }
+        
+        
+        private void add(LineSegment segment) {
+            array[size++] = segment;
+            if (size == array.length) {
+                resize(array.length*2);
+            }
+        }
+        
+        
+        private LineSegment remove() {
+            LineSegment segment = array[--size];
+            if (size <= array.length/4) {
+                resize(array.length/2);
+            }
+            return segment;
+        }
+        
+        
+        private void resize(int newSize) {
+            LineSegment[] newArray = new LineSegment[newSize];
+            for (int i = 0; i < size; i++) {
+                newArray[i] = array[i];
+            }
+            array = newArray;
+        }
+        
+        private int size() {
+            return size;
+        }
+        
+        
+    }
     
     public static void main(String[] args) {
 

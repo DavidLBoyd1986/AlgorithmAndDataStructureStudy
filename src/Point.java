@@ -127,6 +127,14 @@ public class Point implements Comparable<Point> {
            //The outer instance variable Point that calls this method is implied, so slopeTo() is in effect this.slopeTo()
            double aSlope = slopeTo(a);
            double bSlope = slopeTo(b);
+//           if (a.x == b.x) {
+//               return +0;
+//           } else if (a.y == b.y) {
+//               return (int) Double.POSITIVE_INFINITY;
+//           } else if (a.compareTo(b) == 0) {
+//               return (int) Double.NEGATIVE_INFINITY;
+//           }
+           
            if (aSlope < bSlope) {
                return -1;
            } else if (aSlope > bSlope) {
@@ -209,13 +217,21 @@ public class Point implements Comparable<Point> {
        test6.draw();
        test7.draw();
        test6.drawTo(test7);
-       // Horizontal
+       // Horizontal 
        System.out.println(test1.slopeTo(test9));
        System.out.println(test1.slopeTo(test10));
        System.out.println(test1.slopeTo(test11));
        System.out.println(test1.slopeTo(test12));
        System.out.println(test1.slopeTo(test13));
-       
+       // Compare horizontal
+       System.out.println(test1.slopeOrder().compare(test9, test10));
+       System.out.println(test1.slopeOrder().compare(test9, test11));
+       System.out.println(test1.slopeOrder().compare(test9, test12));
+       System.out.println(test1.slopeOrder().compare(test9, test13));
+       System.out.println(test1.slopeOrder().compare(test10, test12));
+       System.out.println(test1.slopeOrder().compare(test13, test12));
+       System.out.println(test1.slopeOrder().compare(test13, test11));
+       System.out.println(test1.slopeOrder().compare(test1, test13));
    }
 
 

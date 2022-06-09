@@ -1,6 +1,3 @@
-import java.util.Arrays;
-import java.util.Comparator;
-
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
@@ -37,26 +34,29 @@ public class BruteCollinearPoints {
         //Loop four points in nested loops to compare every implementation
         for (int pointOne = 0; pointOne < points.length; pointOne++) {
             for (int pointTwo = pointOne+1; pointTwo < points.length; pointTwo++) {
-                for (int pointThree = pointOne+2; pointThree < points.length; pointThree++) {
-                    for (int pointFour = pointOne+3; pointFour < points.length; pointFour++) {
-                        //troubleshooting step
-                        System.out.println("Outerloop: " + pointOne);
-                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointTwo]));
-                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointThree]));
-                        System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointFour]));
-                        System.out.println("----------------");
-                            
+                for (int pointThree = pointTwo+1; pointThree < points.length; pointThree++) {
+                    for (int pointFour = pointThree+1; pointFour < points.length; pointFour++) {
                         // If the slope of all four points are equal it's a line
                         if (copyPoints[pointOne].slopeTo(copyPoints[pointTwo]) == copyPoints[pointOne].slopeTo(copyPoints[pointThree]) &&
                                 copyPoints[pointOne].slopeTo(copyPoints[pointThree]) == copyPoints[pointOne].slopeTo(copyPoints[pointFour])) {
                             segmentsResizingArray.add(new LineSegment(copyPoints[pointOne], copyPoints[pointFour]));
                             segmentArraySize++;
+                            //troubleshooting step
+                            System.out.println("Outerloop: " + pointOne);
+                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointTwo]));
+                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointThree]));
+                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointFour]));
+                            System.out.println("-----");
+                            System.out.println("pointOne = " + pointOne);
+                            System.out.println("pointTwo = " + pointTwo);
+                            System.out.println("pointThree = " + pointThree);
+                            System.out.println("pointFour = " + pointFour);
+                            System.out.println("-----");
                             }
                         }
                     }
                 }
-            }
-    
+            }    
         segments = new LineSegment[segmentsResizingArray.size()];
         for (int i = 0; i < numberOfSegments(); i++) {
             segments[i] = segmentsResizingArray.remove();

@@ -104,7 +104,7 @@ public class Point implements Comparable<Point> {
            return Double.NEGATIVE_INFINITY;
        }
        // Calculate slope and return it. Might need to change to use double in formula instead of int.
-       double slope = ((double) that.y - this.y) / ((double) that.x - this.x);
+       double slope = (((double) that.y - this.y)) / (((double) that.x - this.x));
        return slope;
    }
    

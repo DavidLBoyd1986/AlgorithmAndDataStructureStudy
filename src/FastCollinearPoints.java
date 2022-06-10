@@ -62,6 +62,11 @@ public class FastCollinearPoints {
                     furthestCollinearPointPosition = pos;
                     previousSlopeValue = slopeValue;
                     collinearPoints++;
+                    // If last element, then see if there are 4 or more collinear points to add before exiting loop
+                    if (pos == points.length - 1 && collinearPoints >= 4) {
+                        segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
+                        segmentArraySize++;
+                    }
                     continue;
                 }
                 // If it doesn't equal, and a line can be made, save the line, and then continue

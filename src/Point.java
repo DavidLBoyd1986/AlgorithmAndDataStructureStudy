@@ -95,7 +95,16 @@ public class Point implements Comparable<Point> {
     * @return the slope between this point and the specified point
     */
    public double slopeTo(Point that) {
-       double slope = (that.y - this.y) / (that.x - this.x);
+       // Corner cases of horizontal or vertical slopes, and if points in same spot.
+       if (this.x == that.x) {
+           return +0.0;
+       } else if (this.y == that.y) {
+           return Double.POSITIVE_INFINITY;
+       } else if (this.compareTo(that) == 0) {
+           return Double.NEGATIVE_INFINITY;
+       }
+       // Calculate slope and return it. Might need to change to use double in formula instead of int.
+       double slope = (((double) that.y - this.y)) / (((double) that.x - this.x));
        return slope;
    }
    
@@ -115,8 +124,17 @@ public class Point implements Comparable<Point> {
    private class SlopeOrder implements Comparator<Point> {
        
        public int compare(Point a, Point b) {
+           //The outer instance variable Point that calls this method is implied, so slopeTo() is in effect this.slopeTo()
            double aSlope = slopeTo(a);
            double bSlope = slopeTo(b);
+//           if (a.x == b.x) {
+//               return +0;
+//           } else if (a.y == b.y) {
+//               return (int) Double.POSITIVE_INFINITY;
+//           } else if (a.compareTo(b) == 0) {
+//               return (int) Double.NEGATIVE_INFINITY;
+//           }
+           
            if (aSlope < bSlope) {
                return -1;
            } else if (aSlope > bSlope) {
@@ -134,10 +152,12 @@ public class Point implements Comparable<Point> {
        Point test3 = new Point(2, 5);
        Point test4 = new Point(4, 2);
        Point test5 = new Point(2, 5);
+       Point test8 = new Point(5, 5);
        System.out.println(test1);
        System.out.println(test2);
        System.out.println(test3);
        System.out.println(test4);
+       System.out.println(test5);
        //Test Compare of points
        if (test1.compareTo(test4) < 0) {
            System.out.println("True");
@@ -158,9 +178,11 @@ public class Point implements Comparable<Point> {
        double slopeTest2 = test1.slopeTo(test2);
        double slopeTest3 = test1.slopeTo(test3);
        double slopeTest4 = test1.slopeTo(test4);
+       double slopeTest8 = test1.slopeTo(test8);
        System.out.println("slopeTest2 = " + slopeTest2);
        System.out.println("slopeTest3 = " + slopeTest3);
        System.out.println("slopeTest4 = " + slopeTest4);
+       System.out.println("slopeTest8 = " + slopeTest8);
        //Test slope comparator
        System.out.println(test1.slopeOrder().compare(test2, test3));
        System.out.println(test1.slopeOrder().compare(test2, test4));
@@ -169,8 +191,47 @@ public class Point implements Comparable<Point> {
        System.out.println(test1.slopeOrder().compare(test4, test2));
        System.out.println(test1.slopeOrder().compare(test3, test2));
        System.out.println(test1.slopeOrder().compare(test3, test5));
+
+       //Need to research if this should be static class or not
+       Comparator<Point> test1Comp = test1.slopeOrder();
+       int test1TwoToThreeResult = test1Comp.compare(test2, test3);
+       System.out.println("test1 Comparater: compare(test2, test3) result: " + test1TwoToThreeResult);
        
-       //Comparator<Point> compPoint = new SlopeOrder();
+       //Testing StdDraw
+       //Normal Scale is set to (0.0 : 1.0), so I adjusted it.
+       StdDraw.setScale(0, 6);
+       test1.draw();
+       test2.draw();
+       test3.draw();
+       test4.draw();
+       test1.drawTo(test2);
+       test1.drawTo(test3);
+       test1.drawTo(test4);
+       Point test6 = new Point(1,1);
+       Point test7 = new Point(2,1);
+       Point test9 = new Point(1,0);
+       Point test10 = new Point(2,0);
+       Point test11 = new Point(3,0);
+       Point test12 = new Point(4,0);
+       Point test13 = new Point(5,0);
+       test6.draw();
+       test7.draw();
+       test6.drawTo(test7);
+       // Horizontal 
+       System.out.println(test1.slopeTo(test9));
+       System.out.println(test1.slopeTo(test10));
+       System.out.println(test1.slopeTo(test11));
+       System.out.println(test1.slopeTo(test12));
+       System.out.println(test1.slopeTo(test13));
+       // Compare horizontal
+       System.out.println(test1.slopeOrder().compare(test9, test10));
+       System.out.println(test1.slopeOrder().compare(test9, test11));
+       System.out.println(test1.slopeOrder().compare(test9, test12));
+       System.out.println(test1.slopeOrder().compare(test9, test13));
+       System.out.println(test1.slopeOrder().compare(test10, test12));
+       System.out.println(test1.slopeOrder().compare(test13, test12));
+       System.out.println(test1.slopeOrder().compare(test13, test11));
+       System.out.println(test1.slopeOrder().compare(test1, test13));
    }
 
 

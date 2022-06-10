@@ -65,6 +65,9 @@ public class Point implements Comparable<Point> {
     *         argument point
     */
    public int compareTo(Point that) {
+       if (that == null) {
+           throw new IllegalArgumentException("Argument for compareTo() can't be null");
+       }
        // Reference point to same object
        if (this == that) {
            return 0;
@@ -95,6 +98,9 @@ public class Point implements Comparable<Point> {
     * @return the slope between this point and the specified point
     */
    public double slopeTo(Point that) {
+       if (that == null) {
+           throw new IllegalArgumentException("Argument for slopeTo() can't be null");
+       }
        // Corner cases of horizontal or vertical slopes, and if points in same spot.
        if (this.x == that.x) {
            return +0.0;

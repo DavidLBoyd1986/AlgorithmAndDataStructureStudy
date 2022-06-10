@@ -7,9 +7,9 @@ import edu.princeton.cs.algs4.StdOut;
 public class BruteCollinearPoints {
 
     // This would have to be a resizing array
-    resizingSegmentArray segmentsResizingArray;
-    LineSegment[] segments;
-    int segmentArraySize;
+    private resizingSegmentArray segmentsResizingArray;
+    private LineSegment[] segments;
+//    private int segmentArraySize;
 
     // Finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
@@ -18,7 +18,7 @@ public class BruteCollinearPoints {
         }
         // This might need to be a resizing array
         segmentsResizingArray = new resizingSegmentArray();
-        segmentArraySize = 0;
+//        segmentArraySize = 0;
         
         //Copy array to make a 2nd array that can be sorted. So, not sorting an array that is being iterated upon.
         Point[] copyPoints = new Point[points.length];
@@ -40,18 +40,18 @@ public class BruteCollinearPoints {
                         if (copyPoints[pointOne].slopeTo(copyPoints[pointTwo]) == copyPoints[pointOne].slopeTo(copyPoints[pointThree]) &&
                                 copyPoints[pointOne].slopeTo(copyPoints[pointThree]) == copyPoints[pointOne].slopeTo(copyPoints[pointFour])) {
                             segmentsResizingArray.add(new LineSegment(copyPoints[pointOne], copyPoints[pointFour]));
-                            segmentArraySize++;
+                       //     segmentArraySize++;
                             //troubleshooting step
-                            System.out.println("Outerloop: " + pointOne);
-                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointTwo]));
-                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointThree]));
-                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointFour]));
-                            System.out.println("-----");
-                            System.out.println("pointOne = " + pointOne);
-                            System.out.println("pointTwo = " + pointTwo);
-                            System.out.println("pointThree = " + pointThree);
-                            System.out.println("pointFour = " + pointFour);
-                            System.out.println("-----");
+//                            System.out.println("Outerloop: " + pointOne);
+//                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointTwo]));
+//                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointThree]));
+//                            System.out.println(copyPoints[pointOne].slopeTo(copyPoints[pointFour]));
+//                            System.out.println("-----");
+//                            System.out.println("pointOne = " + pointOne);
+//                            System.out.println("pointTwo = " + pointTwo);
+//                            System.out.println("pointThree = " + pointThree);
+//                            System.out.println("pointFour = " + pointFour);
+//                            System.out.println("-----");
                             }
                         }
                     }

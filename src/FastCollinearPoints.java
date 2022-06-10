@@ -8,9 +8,9 @@ import edu.princeton.cs.algs4.StdOut;
 public class FastCollinearPoints {
 
     // This would have to be a resizing array
-    resizingSegmentArray segmentsResizingArray;
-    LineSegment[] segments;
-    int segmentArraySize;
+    private resizingSegmentArray segmentsResizingArray;
+    private LineSegment[] segments;
+ //   private int segmentArraySize;
 
     // Finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
@@ -19,7 +19,7 @@ public class FastCollinearPoints {
         }
         // A linked list would perform better than an array list.
         segmentsResizingArray = new resizingSegmentArray();
-        segmentArraySize = 0;
+  //      segmentArraySize = 0;
                 
         //Outer loop looks at every point in the Point[]     
         for (int point = 0; point < points.length; point++) {
@@ -35,10 +35,10 @@ public class FastCollinearPoints {
             Arrays.sort(points, pointComparator);
 
             //troubleshooting step
-            System.out.println("Outerloop: " + pivotPoint);
-            for (int i = 0; i < points.length; i++) {
-                System.out.println(pivotPoint.slopeTo(points[i]));
-            }
+//            System.out.println("Outerloop: " + pivotPoint);
+//            for (int i = 0; i < points.length; i++) {
+//                System.out.println(pivotPoint.slopeTo(points[i]));
+//            }
             
             // Set up base values for the inner loop to check for collinear points in the sorted array
             int collinearPoints = 0;
@@ -63,16 +63,16 @@ public class FastCollinearPoints {
                     previousSlopeValue = slopeValue;
                     collinearPoints++;
                     // If last element, then see if there are 4 or more collinear points to add before exiting loop
-                    if (pos == points.length - 1 && collinearPoints >= 4) {
+                    if (pos == points.length - 1 && collinearPoints >= 3) {
                         segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-                        segmentArraySize++;
+   //                     segmentArraySize++;
                     }
                     continue;
                 }
                 // If it doesn't equal, and a line can be made, save the line, and then continue
-                if (previousSlopeValue != slopeValue && collinearPoints >= 4) {
+                if (previousSlopeValue != slopeValue && collinearPoints >= 3) {
                         segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-                        segmentArraySize++;
+     //                   segmentArraySize++;
                         collinearPoints = 1;
                         previousSlopeValue = slopeValue;
                         continue;

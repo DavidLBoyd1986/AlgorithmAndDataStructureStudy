@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
@@ -7,21 +9,17 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
 
-    // This would have to be a resizing array
-    private resizingSegmentArray segmentsResizingArray;
+    private LinkedListStack<LineSegment> stack;
     private LineSegment[] segments;
- //   private int segmentArraySize;
 
     // Finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Argument 'points' is null");
         }
-        // A linked list would perform better than an array list.
-        segmentsResizingArray = new resizingSegmentArray();
-  //      segmentArraySize = 0;
+        stack = new LinkedListStack<LineSegment>();
                 
-        //Outer loop looks at every point in the Point[]     
+        // Outer loop looks at every point in the Point[]     
         for (int point = 0; point < points.length; point++) {
             // This sort puts the array back in it's natural order after it was sorted by slope
             Arrays.sort(points);
@@ -29,16 +27,10 @@ public class FastCollinearPoints {
                 throw new IllegalArgumentException("point " + point + " in points array is null");
             }
             
-            //Sort points array by SlopeComparator to this pivot point
+            // Sort points array by SlopeComparator to this pivot point
             Point pivotPoint = points[point];
             Comparator<Point> pointComparator = pivotPoint.slopeOrder();
             Arrays.sort(points, pointComparator);
-
-            //troubleshooting step
-//            System.out.println("Outerloop: " + pivotPoint);
-//            for (int i = 0; i < points.length; i++) {
-//                System.out.println(pivotPoint.slopeTo(points[i]));
-//            }
             
             // Set up base values for the inner loop to check for collinear points in the sorted array
             int collinearPoints = 0;
@@ -64,15 +56,13 @@ public class FastCollinearPoints {
                     collinearPoints++;
                     // If last element, then see if there are 4 or more collinear points to add before exiting loop
                     if (pos == points.length - 1 && collinearPoints >= 3) {
-                        segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-   //                     segmentArraySize++;
+                        stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
                     }
                     continue;
                 }
                 // If it doesn't equal, and a line can be made, save the line, and then continue
                 if (previousSlopeValue != slopeValue && collinearPoints >= 3) {
-                        segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-     //                   segmentArraySize++;
+                        stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
                         collinearPoints = 1;
                         previousSlopeValue = slopeValue;
                         continue;
@@ -84,9 +74,9 @@ public class FastCollinearPoints {
             }
         }
         // Outer loop over, add all the LineSegments to segments array
-        segments = new LineSegment[segmentsResizingArray.size()];
+        segments = new LineSegment[stack.size()];
         for (int i = 0; i < numberOfSegments(); i++) {
-            segments[i] = segmentsResizingArray.remove();
+            segments[i] = stack.pop();
         }
     }
     
@@ -101,50 +91,71 @@ public class FastCollinearPoints {
     public LineSegment[] segments() {
         return segments;
     }
-    
-    
-    // resizing segment array
-    private class resizingSegmentArray{
+
+
+    private class LinkedListStack<Item> implements Iterable<Item> {
         
-        private LineSegment[] array;
+        private Node first;
         private int size;
         
-        
-        resizingSegmentArray() {
-            array = new LineSegment[1];
-            size = 0;
+        private class Node {
+            private Item item;
+            private Node next;
         }
         
         
-        private void add(LineSegment segment) {
-            array[size++] = segment;
-            if (size == array.length) {
-                resize(array.length*2);
+        public boolean isEmpty() {
+            return first == null;
+        }
+        
+        
+        public void push(Item item) {
+            Node oldFirst = first;
+            first = new Node();
+            first.item = item;
+            first.next = oldFirst;
+            size++;
+        }
+        
+        
+        public Item pop() {
+            if (isEmpty()) {
+                throw new NoSuchElementException();
             }
+            Item returnItem = first.item;
+            first = first.next;
+            return returnItem;
         }
         
         
-        private LineSegment remove() {
-            LineSegment segment = array[--size];
-            if (size <= array.length/4) {
-                resize(array.length/2);
-            }
-            return segment;
-        }
-        
-        
-        private void resize(int newSize) {
-            LineSegment[] newArray = new LineSegment[newSize];
-            for (int i = 0; i < size; i++) {
-                newArray[i] = array[i];
-            }
-            array = newArray;
-        }
-
-        
-        private int size() {
+        public int size() {
             return size;
-        }     
+        }
+        
+        
+        public Iterator<Item> iterator() {
+            return new StackIterator();
+        }
+        
+        private class StackIterator implements Iterator<Item> {
+            
+            private Node current = first;
+            
+            
+            public boolean hasNext() {
+                return current != null;
+            }
+            
+            
+            public Item next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more elements in list");
+                }
+                Item returnItem = current.item;
+                current = current.next;
+                return returnItem;
+            }
+        }
     }
     
     

@@ -32,8 +32,17 @@ public class FastCollinearPoints {
             Comparator<Point> pointComparator = pivotPoint.slopeOrder();
             Arrays.sort(points, pointComparator);
             
+            // Troubleshooting step
+//            System.out.println("Outer Loop: " + point);
+//            for (int i = 0; i < points.length; i++) {
+//                System.out.println(pivotPoint.slopeTo(points[i]) + " is slope to " + points[i]);
+//                System.out.println();
+//            }
+//            System.out.println("-------");
+            
             // Set up base values for the inner loop to check for collinear points in the sorted array
             int collinearPoints = 0;
+            int earliestCollinearPointPosition = 0;
             int furthestCollinearPointPosition = 0;
             double previousSlopeValue = pivotPoint.slopeTo(points[0]);
             // Inner loop that tries to find four or more adjacent slope values that are equal
@@ -47,25 +56,36 @@ public class FastCollinearPoints {
                 if (points[pos] == pivotPoint) {
                     continue;
                 }
+                
                 // Calculate slopeValue
                 double slopeValue = pivotPoint.slopeTo(points[pos]);
                 // If this slopeValue equals previous, save the Point position, and continue
                 if (slopeValue == previousSlopeValue) {
+                    // Track smallest point in collinear points
+                    if (collinearPoints == 1) {
+                        earliestCollinearPointPosition = pos-1;
+                    }
                     furthestCollinearPointPosition = pos;
                     previousSlopeValue = slopeValue;
                     collinearPoints++;
                     // If last element, then see if there are 4 or more collinear points to add before exiting loop
                     if (pos == points.length - 1 && collinearPoints >= 3) {
-                        stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
+                        // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
+                        if (pivotPoint.compareTo(points[earliestCollinearPointPosition]) < 0) {
+                            stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
+                        }
                     }
                     continue;
                 }
                 // If it doesn't equal, and a line can be made, save the line, and then continue
                 if (previousSlopeValue != slopeValue && collinearPoints >= 3) {
+                    // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
+                    if (pivotPoint.compareTo(points[earliestCollinearPointPosition]) < 0) {
                         stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-                        collinearPoints = 1;
-                        previousSlopeValue = slopeValue;
-                        continue;
+                    }
+                    collinearPoints = 1;
+                    previousSlopeValue = slopeValue;
+                    continue;
                 // The slope values don't match, but a line can't be made, continue
                 } else if (previousSlopeValue != slopeValue) {
                     collinearPoints = 1;

@@ -11,57 +11,62 @@ public class FastCollinearPoints {
 
     private LinkedListStack<LineSegment> stack;
     private LineSegment[] segments;
+    private Point[] copyPoints;
 
     // Finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Argument 'points' is null");
         }
+        // can't mutate argument to constructor, so it has to be copied to new array
+        copyPoints = new Point[points.length];
+        for (int i = 0; i < points.length; i++) {
+            if (points[i] == null) {
+                throw new IllegalArgumentException("Point[] argument contains a null reference at position: " + i);
+            }
+            copyPoints[i] = points[i];
+        }
+        // Check for duplicate points before processing copyPoints
+        Arrays.sort(copyPoints);
+        Point previousPoint = copyPoints[0];
+        for (int i = 1; i < copyPoints.length; i++) {
+            if (copyPoints[i].compareTo(previousPoint) == 0) {
+                throw new IllegalArgumentException("Point[] points argument contains duplicate points.");
+            }
+            previousPoint = copyPoints[i];
+        }
+        // LinkedList to store segments in until algorithm is finished
         stack = new LinkedListStack<LineSegment>();
                 
         // Outer loop looks at every point in the Point[]     
-        for (int point = 0; point < points.length; point++) {
+        for (int point = 0; point < copyPoints.length; point++) {
             // This sort puts the array back in it's natural order after it was sorted by slope
-            Arrays.sort(points);
-            if (points[point] == null) {
-                throw new IllegalArgumentException("point " + point + " in points array is null");
-            }
-            
+            Arrays.sort(copyPoints);            
             // Sort points array by SlopeComparator to this pivot point
-            Point pivotPoint = points[point];
+            Point pivotPoint = copyPoints[point];
             Comparator<Point> pointComparator = pivotPoint.slopeOrder();
-            Arrays.sort(points, pointComparator);
-            
-            // Troubleshooting step
-//            System.out.println("Outer Loop: " + point);
-//            for (int i = 0; i < points.length; i++) {
-//                System.out.println(pivotPoint.slopeTo(points[i]) + " is slope to " + points[i]);
-//                System.out.println();
-//            }
-//            System.out.println("-------");
-            
+            Arrays.sort(copyPoints, pointComparator);
             // Set up base values for the inner loop to check for collinear points in the sorted array
             int collinearPoints = 0;
             int earliestCollinearPointPosition = 0;
             int furthestCollinearPointPosition = 0;
-            double previousSlopeValue = pivotPoint.slopeTo(points[0]);
+            double previousSlopeValue = pivotPoint.slopeTo(copyPoints[0]);
             // Inner loop that tries to find four or more adjacent slope values that are equal
-            for (int pos = 0; pos < points.length; pos++) {
+            for (int pos = 0; pos < copyPoints.length; pos++) {
                 // If first value it's already listed as previousSlopeValue, make collinearPoints 1 and continue
                 if (pos == 0) {
                     collinearPoints++;
                     continue;
                 }
                 // Always skip the pivotPoint to prevent lines with the same point on each end
-                if (points[pos] == pivotPoint) {
+                if (copyPoints[pos] == pivotPoint) {
                     continue;
-                }
-                
+                }              
                 // Calculate slopeValue
-                double slopeValue = pivotPoint.slopeTo(points[pos]);
+                double slopeValue = pivotPoint.slopeTo(copyPoints[pos]);
                 // If this slopeValue equals previous, save the Point position, and continue
                 if (slopeValue == previousSlopeValue) {
-                    // Track smallest point in collinear points
+                    // Track smallest point of collinear points; it's always the earliest position of equal slopes
                     if (collinearPoints == 1) {
                         earliestCollinearPointPosition = pos-1;
                     }
@@ -69,10 +74,10 @@ public class FastCollinearPoints {
                     previousSlopeValue = slopeValue;
                     collinearPoints++;
                     // If last element, then see if there are 4 or more collinear points to add before exiting loop
-                    if (pos == points.length - 1 && collinearPoints >= 3) {
+                    if (pos == copyPoints.length - 1 && collinearPoints >= 3) {
                         // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
-                        if (pivotPoint.compareTo(points[earliestCollinearPointPosition]) < 0) {
-                            stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
+                        if (pivotPoint.compareTo(copyPoints[earliestCollinearPointPosition]) < 0) {
+                            stack.push(new LineSegment(pivotPoint, copyPoints[furthestCollinearPointPosition]));
                         }
                     }
                     continue;
@@ -80,8 +85,8 @@ public class FastCollinearPoints {
                 // If it doesn't equal, and a line can be made, save the line, and then continue
                 if (previousSlopeValue != slopeValue && collinearPoints >= 3) {
                     // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
-                    if (pivotPoint.compareTo(points[earliestCollinearPointPosition]) < 0) {
-                        stack.push(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
+                    if (pivotPoint.compareTo(copyPoints[earliestCollinearPointPosition]) < 0) {
+                        stack.push(new LineSegment(pivotPoint, copyPoints[furthestCollinearPointPosition]));
                     }
                     collinearPoints = 1;
                     previousSlopeValue = slopeValue;
@@ -109,7 +114,11 @@ public class FastCollinearPoints {
     
     // The line segments
     public LineSegment[] segments() {
-        return segments;
+        LineSegment[] copySegments = new LineSegment[segments.length];
+        for (int i = 0; i < segments.length; i++) {
+            copySegments[i] = segments[i];
+        }
+        return copySegments;
     }
 
 

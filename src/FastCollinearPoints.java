@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
@@ -7,75 +9,88 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
 
-    // This would have to be a resizing array
-    resizingSegmentArray segmentsResizingArray;
-    LineSegment[] segments;
-    int segmentArraySize;
+    private LinkedListStack<LineSegment> stack;
+    private LineSegment[] segments;
+    private Point[] copyPoints;
 
     // Finds all line segments containing 4 or more points
     public FastCollinearPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Argument 'points' is null");
         }
-        // A linked list would perform better than an array list.
-        segmentsResizingArray = new resizingSegmentArray();
-        segmentArraySize = 0;
+        // can't mutate argument to constructor, so it has to be copied to new array
+        copyPoints = new Point[points.length];
+        for (int i = 0; i < points.length; i++) {
+            if (points[i] == null) {
+                throw new IllegalArgumentException("Point[] argument contains a null reference at position: " + i);
+            }
+            copyPoints[i] = points[i];
+        }
+        // Check for duplicate points before processing copyPoints
+        Arrays.sort(copyPoints);
+        Point previousPoint = copyPoints[0];
+        for (int i = 1; i < copyPoints.length; i++) {
+            if (copyPoints[i].compareTo(previousPoint) == 0) {
+                throw new IllegalArgumentException("Point[] points argument contains duplicate points.");
+            }
+            previousPoint = copyPoints[i];
+        }
+        // LinkedList to store segments in until algorithm is finished
+        stack = new LinkedListStack<LineSegment>();
                 
-        //Outer loop looks at every point in the Point[]     
-        for (int point = 0; point < points.length; point++) {
+        // Outer loop looks at every point in the Point[]     
+        for (int point = 0; point < copyPoints.length; point++) {
             // This sort puts the array back in it's natural order after it was sorted by slope
-            Arrays.sort(points);
-            if (points[point] == null) {
-                throw new IllegalArgumentException("point " + point + " in points array is null");
-            }
-            
-            //Sort points array by SlopeComparator to this pivot point
-            Point pivotPoint = points[point];
+            Arrays.sort(copyPoints);            
+            // Sort points array by SlopeComparator to this pivot point
+            Point pivotPoint = copyPoints[point];
             Comparator<Point> pointComparator = pivotPoint.slopeOrder();
-            Arrays.sort(points, pointComparator);
-
-            //troubleshooting step
-            System.out.println("Outerloop: " + pivotPoint);
-            for (int i = 0; i < points.length; i++) {
-                System.out.println(pivotPoint.slopeTo(points[i]));
-            }
-            
+            Arrays.sort(copyPoints, pointComparator);
             // Set up base values for the inner loop to check for collinear points in the sorted array
             int collinearPoints = 0;
+            int earliestCollinearPointPosition = 0;
             int furthestCollinearPointPosition = 0;
-            double previousSlopeValue = pivotPoint.slopeTo(points[0]);
+            double previousSlopeValue = pivotPoint.slopeTo(copyPoints[0]);
             // Inner loop that tries to find four or more adjacent slope values that are equal
-            for (int pos = 0; pos < points.length; pos++) {
+            for (int pos = 0; pos < copyPoints.length; pos++) {
                 // If first value it's already listed as previousSlopeValue, make collinearPoints 1 and continue
                 if (pos == 0) {
                     collinearPoints++;
                     continue;
                 }
                 // Always skip the pivotPoint to prevent lines with the same point on each end
-                if (points[pos] == pivotPoint) {
+                if (copyPoints[pos] == pivotPoint) {
                     continue;
-                }
+                }              
                 // Calculate slopeValue
-                double slopeValue = pivotPoint.slopeTo(points[pos]);
+                double slopeValue = pivotPoint.slopeTo(copyPoints[pos]);
                 // If this slopeValue equals previous, save the Point position, and continue
                 if (slopeValue == previousSlopeValue) {
+                    // Track smallest point of collinear points; it's always the earliest position of equal slopes
+                    if (collinearPoints == 1) {
+                        earliestCollinearPointPosition = pos-1;
+                    }
                     furthestCollinearPointPosition = pos;
                     previousSlopeValue = slopeValue;
                     collinearPoints++;
                     // If last element, then see if there are 4 or more collinear points to add before exiting loop
-                    if (pos == points.length - 1 && collinearPoints >= 4) {
-                        segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-                        segmentArraySize++;
+                    if (pos == copyPoints.length - 1 && collinearPoints >= 3) {
+                        // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
+                        if (pivotPoint.compareTo(copyPoints[earliestCollinearPointPosition]) < 0) {
+                            stack.push(new LineSegment(pivotPoint, copyPoints[furthestCollinearPointPosition]));
+                        }
                     }
                     continue;
                 }
                 // If it doesn't equal, and a line can be made, save the line, and then continue
-                if (previousSlopeValue != slopeValue && collinearPoints >= 4) {
-                        segmentsResizingArray.add(new LineSegment(pivotPoint, points[furthestCollinearPointPosition]));
-                        segmentArraySize++;
-                        collinearPoints = 1;
-                        previousSlopeValue = slopeValue;
-                        continue;
+                if (previousSlopeValue != slopeValue && collinearPoints >= 3) {
+                    // If pivot point is greater than earliestCollinearPoint, this is subsegment and is skipped
+                    if (pivotPoint.compareTo(copyPoints[earliestCollinearPointPosition]) < 0) {
+                        stack.push(new LineSegment(pivotPoint, copyPoints[furthestCollinearPointPosition]));
+                    }
+                    collinearPoints = 1;
+                    previousSlopeValue = slopeValue;
+                    continue;
                 // The slope values don't match, but a line can't be made, continue
                 } else if (previousSlopeValue != slopeValue) {
                     collinearPoints = 1;
@@ -84,9 +99,9 @@ public class FastCollinearPoints {
             }
         }
         // Outer loop over, add all the LineSegments to segments array
-        segments = new LineSegment[segmentsResizingArray.size()];
+        segments = new LineSegment[stack.size()];
         for (int i = 0; i < numberOfSegments(); i++) {
-            segments[i] = segmentsResizingArray.remove();
+            segments[i] = stack.pop();
         }
     }
     
@@ -99,52 +114,77 @@ public class FastCollinearPoints {
     
     // The line segments
     public LineSegment[] segments() {
-        return segments;
+        LineSegment[] copySegments = new LineSegment[segments.length];
+        for (int i = 0; i < segments.length; i++) {
+            copySegments[i] = segments[i];
+        }
+        return copySegments;
     }
-    
-    
-    // resizing segment array
-    private class resizingSegmentArray{
+
+
+    private class LinkedListStack<Item> implements Iterable<Item> {
         
-        private LineSegment[] array;
+        private Node first;
         private int size;
         
-        
-        resizingSegmentArray() {
-            array = new LineSegment[1];
-            size = 0;
+        private class Node {
+            private Item item;
+            private Node next;
         }
         
         
-        private void add(LineSegment segment) {
-            array[size++] = segment;
-            if (size == array.length) {
-                resize(array.length*2);
+        public boolean isEmpty() {
+            return first == null;
+        }
+        
+        
+        public void push(Item item) {
+            Node oldFirst = first;
+            first = new Node();
+            first.item = item;
+            first.next = oldFirst;
+            size++;
+        }
+        
+        
+        public Item pop() {
+            if (isEmpty()) {
+                throw new NoSuchElementException();
             }
+            Item returnItem = first.item;
+            first = first.next;
+            return returnItem;
         }
         
         
-        private LineSegment remove() {
-            LineSegment segment = array[--size];
-            if (size <= array.length/4) {
-                resize(array.length/2);
-            }
-            return segment;
-        }
-        
-        
-        private void resize(int newSize) {
-            LineSegment[] newArray = new LineSegment[newSize];
-            for (int i = 0; i < size; i++) {
-                newArray[i] = array[i];
-            }
-            array = newArray;
-        }
-
-        
-        private int size() {
+        public int size() {
             return size;
-        }     
+        }
+        
+        
+        public Iterator<Item> iterator() {
+            return new StackIterator();
+        }
+        
+        private class StackIterator implements Iterator<Item> {
+            
+            private Node current = first;
+            
+            
+            public boolean hasNext() {
+                return current != null;
+            }
+            
+            
+            public Item next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more elements in list");
+                }
+                Item returnItem = current.item;
+                current = current.next;
+                return returnItem;
+            }
+        }
     }
     
     

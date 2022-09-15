@@ -1,13 +1,13 @@
-import java.util.Comparator;
+
 import java.util.LinkedList;
 import edu.princeton.cs.algs4.MinPQ;
 
 
 public class Solver {
 
-    LinkedList<Board> solution;
-    int moves;
-    boolean isSolvable;
+    private LinkedList<Board> solution;
+    private int moves;
+    private boolean isSolvable;
 
     // find a solution to the initial board (using the A* algorithm)
     public Solver(Board initial) {
@@ -37,6 +37,11 @@ public class Solver {
             }
             moves += 1;
             for (Board neighbor : minNode.board.neighbors()) {
+                if (moves > 1) {
+                    if (neighbor == minNode.previousNode.board) {
+                        continue;
+                    }
+                }
                 SearchNode newNode = new SearchNode(neighbor, minNode, moves);
                 pq.insert(newNode);
             }
@@ -49,6 +54,11 @@ public class Solver {
                 break;
             }
             for (Board neighbor : minTwinNode.board.neighbors()) {
+                if (moves > 1) {
+                    if (minTwinNode.previousNode.board != null && neighbor == minTwinNode.previousNode.board) {
+                        continue;
+                    }
+                }
                 SearchNode newNode = new SearchNode(neighbor, minTwinNode, moves);
                 twinpq.insert(newNode);
             }
@@ -61,11 +71,13 @@ public class Solver {
         Board board;
         SearchNode previousNode;
         int moves;
+        int manhattan;
         
         private SearchNode(Board newBoard, SearchNode lastNode, int numOfMoves) {
             board = newBoard;
             previousNode = lastNode;
             moves = numOfMoves;
+            manhattan = this.board.manhattan();
         }
         
         public int compareTo(SearchNode that) {
@@ -73,30 +85,17 @@ public class Solver {
                 throw new NullPointerException("Argument for compareTo() can't be null");
             }
             
-            int aBoardHP = this.board.hamming() + this.moves;
-            int aBoardH = that.board.hamming() + that.moves;
+            int aBoardMP = this.manhattan + this.moves;
+            int bBoardMP = that.manhattan + that.moves;
             // Reference point to same object
             if (this == that) {
                 return 0;
-            } else if (aBoardH < aBoardH) {
+            } else if (aBoardMP < bBoardMP) {
                 return -1;
-            } else if (aBoardH > aBoardH) {
+            } else if (aBoardMP > bBoardMP) {
                 return 1;
             }
             return 0;
-        }
-
-        
-        public int compare(SearchNode a, SearchNode b) {
-            int aBoardHP = a.board.hamming() + a.moves;
-            int bBoardHP = b.board.hamming() + b.moves;
-            if (aBoardHP < bBoardHP) {
-                return -1;
-            } else if (aBoardHP > bBoardHP) {
-                return 1;
-            } else {
-                return 0;
-            }
         }
     }
 
@@ -117,6 +116,6 @@ public class Solver {
 
     // test client (see below) 
     public static void main(String[] args) {
-        PuzzleCheckerUpdate.main(args);    
+        //PuzzleCheckerUpdate.main(args);    
     }
 }

@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import edu.princeton.cs.algs4.In;
+
 import java.lang.Math;
 
 public class Board {
@@ -45,15 +48,15 @@ public class Board {
         int outOfPosition = 0;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
-                // If at last spot of board, break
-                if (r == size - 1 && c == size -1) {
-                    break;
-                }
                 // If not the blank spot and not a valid position
                 if (board[r][c] != 0 && board[r][c] != validPosition) {
                     outOfPosition++;
                 }
                 validPosition++;
+                // If at last spot of board, break
+                if (r == size - 1 && c == size -1) {
+                    break;
+                }
             }
         }
         return outOfPosition;
@@ -63,16 +66,18 @@ public class Board {
     public int manhattan() {
         // Make a map of every position of tiles on the board
         HashMap<Integer, int[]> positionMap = new HashMap<Integer, int[]>();
+        int position = 1;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 int[] positionArray = new int[2];
                 positionArray[0] = r;
                 positionArray[1] = c;
-                positionMap.put(board[r][c], positionArray);
+                positionMap.put(position, positionArray);
+                position++;
             }
         }
         // For every position in board [r][c] count how far the value is from its position
-        int position = 0;
+        position = 0;
         int manhattanCount = 0;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -83,7 +88,7 @@ public class Board {
                     continue;
                 }
                 // If tile == position, continue; else, add the distance to manhattanCount
-                if (tileValue == position) {
+                if (tileValue == position+1) {
                     position++;
                 } else {
                     int[] valuePosition = new int[2]; // Create array to hold valuePosition
@@ -259,6 +264,32 @@ public class Board {
         Iterable<Board> neighborBoards = testBoard.neighbors();
         for (Board board : neighborBoards) {
             System.out.println(board.toString());
+        }
+        
+        String[] files = new String[6];
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle00.txt";
+        files[1] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle01.txt";
+        files[2] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle02.txt";
+        files[3] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle2x2-unsolvable1.txt";
+        files[4] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle2x2-unsolvable2.txt";
+        files[5] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\8puzzleSubset\\puzzle2x2-unsolvable3.txt";
+
+        // for each command-line argument
+        for (String filename : files) {
+
+            // read in the board specified in the filename
+            In in = new In(filename);
+            int n = in.readInt();
+            int[][] tiles = new int[n][n];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    tiles[i][j] = in.readInt();
+                }
+            }
+            
+            // solve the slider puzzle
+            Board initial = new Board(tiles);
+            System.out.println(initial.manhattan());
         }
     }
 

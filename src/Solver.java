@@ -1,16 +1,21 @@
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import edu.princeton.cs.algs4.MinPQ;
 
 
 public class Solver {
 
-    private LinkedList<Board> solution;
+    private ArrayList<Board> tempSolution;
+    private ArrayList<Board> solution;
     private int moves;
     private boolean isSolvable;
 
     // find a solution to the initial board (using the A* algorithm)
     public Solver(Board initial) {
+        if (initial == null) {
+            throw new IllegalArgumentException("Board argument can't be null.");
+        }
         moves = 0;
         // Create priorty queue to hold starting Node (initial board)
         MinPQ<SearchNode> pq = new MinPQ<SearchNode>();
@@ -26,23 +31,29 @@ public class Solver {
             // Increment actual game board
             SearchNode minNode = pq.delMin();
             if (minNode.board.isGoal()) {
-                solution = new LinkedList<Board>();
-                solution.add(minNode.board);
-                while (minNode.previousNode != null) {
-                    solution.add(minNode.previousNode.board);
+                moves = minNode.moves;
+                // List will be in reverse order
+                tempSolution = new ArrayList<Board>();
+                for (int i = moves; i >= 0; i--) {
+                    tempSolution.add(minNode.board);
                     minNode = minNode.previousNode;
+                }
+                solution = new ArrayList<Board>();
+                // Put list in correct order
+                for (int i = tempSolution.size()-1; i >= 0; i--) {
+                    solution.add(tempSolution.remove(i));
                 }
                 isSolvable = true;
                 break;
             }
-            moves += 1;
+            moves += 1; // This can be deleted and changed to a boolean that checks if it's the first pass
             for (Board neighbor : minNode.board.neighbors()) {
                 if (moves > 1) {
-                    if (neighbor == minNode.previousNode.board) {
+                    if (neighbor.equals(minNode.previousNode.board)) {
                         continue;
                     }
                 }
-                SearchNode newNode = new SearchNode(neighbor, minNode, moves);
+                SearchNode newNode = new SearchNode(neighbor, minNode, minNode.moves+1);
                 pq.insert(newNode);
             }
             // Increment twin game board
@@ -55,11 +66,11 @@ public class Solver {
             }
             for (Board neighbor : minTwinNode.board.neighbors()) {
                 if (moves > 1) {
-                    if (minTwinNode.previousNode.board != null && neighbor == minTwinNode.previousNode.board) {
+                    if (neighbor.equals(minTwinNode.previousNode.board)) {
                         continue;
                     }
                 }
-                SearchNode newNode = new SearchNode(neighbor, minTwinNode, moves);
+                SearchNode newNode = new SearchNode(neighbor, minTwinNode, minTwinNode.moves+1);
                 twinpq.insert(newNode);
             }
         }

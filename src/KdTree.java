@@ -4,6 +4,7 @@ import java.util.TreeSet;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.BST.Node;
 
 public class KdTree {
 
@@ -106,9 +107,22 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        Node node = new Node();
-        node.p = p;
-        return kdTree.contains(node);
+        return get(p) != null;;
+    }
+    
+    
+    public Point2D get(Point2D p) {
+        return get(kdTree.first(), p);
+    }
+    
+    private Point2D get(Node x, Point2D p) {
+        if (p == null) throw new IllegalArgumentException("calls get() with a null key");
+        if (x == null) return null;
+        // Add if to check x or y depending on orientation
+        int cmp = p.compareTo(x.p);
+        if      (cmp < 0) return get(x.lb, p);
+        else if (cmp > 0) return get(x.rt, p);
+        else              return x.p;
     }
     
     // draw all points to standard draw 

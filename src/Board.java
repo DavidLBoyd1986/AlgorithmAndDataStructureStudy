@@ -28,8 +28,13 @@ public class Board {
         StringBuilder output = new StringBuilder();
         output.append(size + "\n");
         for (int r = 0; r < size; r++) {
+            output.append(" ");
             for (int c = 0; c < size; c++) {
+                if (String.valueOf(board[r][c]).length() == 1) {
+                    output.append(" ");
+                }
                 output.append(board[r][c]);
+                output.append(" ");
             }
                 output.append("\n");
         }
@@ -64,20 +69,8 @@ public class Board {
 
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
-        // Make a map of every position of tiles on the board
-        HashMap<Integer, int[]> positionMap = new HashMap<Integer, int[]>();
-        int position = 1;
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                int[] positionArray = new int[2];
-                positionArray[0] = r;
-                positionArray[1] = c;
-                positionMap.put(position, positionArray);
-                position++;
-            }
-        }
         // For every position in board [r][c] count how far the value is from its position
-        position = 0;
+        int position = 0;
         int manhattanCount = 0;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -91,11 +84,18 @@ public class Board {
                 if (tileValue == position+1) {
                     position++;
                 } else {
-                    int[] valuePosition = new int[2]; // Create array to hold valuePosition
-                    valuePosition = positionMap.get(tileValue); // Get position of the tile that has the value
+                    // Get row position of the tile value
+                    int valueRow;
+                    if (tileValue%size == 0) {
+                        valueRow = (tileValue/size)-1;
+                    } else {
+                        valueRow = Math.abs(tileValue/size);
+                    }
+                    // Get column position of the tile value
+                    int valueColumn = Math.abs(tileValue-(size*valueRow))-1; 
                     // Calculate the difference, and add it to manhattanCount
-                    int rowDifference = Math.abs(r - valuePosition[0]);
-                    int colDifference = Math.abs(c - valuePosition[1]);
+                    int rowDifference = Math.abs(r - valueRow);
+                    int colDifference = Math.abs(c - valueColumn);
                     int totalDifference = rowDifference + colDifference;
                     manhattanCount += totalDifference;
                     position++;

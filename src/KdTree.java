@@ -4,11 +4,13 @@ import java.util.TreeSet;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.BST.Node;
+
 
 public class KdTree {
 
-    private static class Node {
+    private Node root;
+
+    private static class Node implements Comparable{
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
         private Node lb;        // the left/bottom subtree
@@ -27,6 +29,16 @@ public class KdTree {
                 return true;
             }
             return false;
+        }
+        
+        public int compareTo(Object that) {
+            Node other = (Node) that;
+            return this.p.compareTo(other.p);
+        }
+        
+        public Node(Point2D initP, boolean initAxis) {
+            p = initP;
+            axis = initAxis;
         }
      }
 
@@ -52,54 +64,26 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        Node node = new Node();
-        node.p = p;
-        if (kdTree.isEmpty()) {
-            kdTree.add(node);
+        
+        root = insert(root, p, true);
+    }
+
+    private Node insert(Node x, Point2D p, boolean currentAxis) {
+        if (x == null) {
+            Node newNode = new Node(p, currentAxis);
+            kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
+            return newNode;
         }
-        int level = 0;
-        Node iterNode = kdTree.first();
-        // Turn this into a private recursive function if this has issues
-        while (iterNode != null) {
-            if (iterNode.p == p) {
-                return;
-            }
-            if (iterNode.axis == true) { // Even means it's a X-Axis check
-                if (p.x() < iterNode.p.x()) {
-                    if (iterNode.lb == null) {
-                        iterNode.lb = node;
-                        return;
-                    } else {
-                        iterNode = iterNode.lb;
-                        level++;
-                    }
-                } else {
-                    if (iterNode.rt == null) {
-                        iterNode.rt = node;
-                        return;
-                    } else {
-                        iterNode = iterNode.rt;
-                        level++;
-                    }
-                }
-            } else { // Must be odd, Odd means it's a Y-Axis check
-                if (p.y() < iterNode.p.y()) {
-                    if (iterNode.lb == null) {
-                        iterNode.lb = node;
-                        return;
-                    } else {
-                        iterNode = iterNode.lb;
-                    }
-                } else {
-                    if (iterNode.rt == null) {
-                        iterNode.rt = node;
-                        return;
-                    } else {
-                        iterNode = iterNode.rt;
-                    }
-                }
-            }
+        boolean nextAxis = !(currentAxis);
+        int cmp = p.compareTo(x.p);
+        if (cmp < 0) {
+            x.lb  = insert(x.lb, p, nextAxis);
+        } else if (cmp > 0) {
+            x.rt = insert(x.rt, p, nextAxis);
+        } else {
+            x.p = p;
         }
+        return x;
     }
     
     // does the set contain point p? 
@@ -107,12 +91,12 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        return get(p) != null;;
+        return get(p) != null;
     }
     
     
     public Point2D get(Point2D p) {
-        return get(kdTree.first(), p);
+        return get(root, p);
     }
     
     private Point2D get(Node x, Point2D p) {
@@ -144,45 +128,67 @@ public class KdTree {
     }
     
     // all points that are inside the rectangle (or on the boundary)
-    public Iterable<Point2D> range(RectHV rect) {
-        if (rect == null) {
-            throw new IllegalArgumentException();
-        }
-        ArrayList<Point2D> pointList = new ArrayList<Point2D>();
-        for (Point2D p : kdTree) {
-            if (p.x() < rect.xmin()) {
-                continue;
-            } else if (p.y() < rect.ymin()) {
-                continue;
-            } else if (p.x() > rect.xmax()) {
-                continue;
-            } else if (p.y() > rect.ymax()) {
-                continue;
-            } else {
-                pointList.add(p);
-            }
-        }
-        return pointList;
-    }
+//    public Iterable<Point2D> range(RectHV rect) {
+//        if (rect == null) {
+//            throw new IllegalArgumentException();
+//        }
+//        ArrayList<Point2D> pointList = new ArrayList<Point2D>();
+//        for (Point2D p : kdTree) {
+//            if (p.x() < rect.xmin()) {
+//                continue;
+//            } else if (p.y() < rect.ymin()) {
+//                continue;
+//            } else if (p.x() > rect.xmax()) {
+//                continue;
+//            } else if (p.y() > rect.ymax()) {
+//                continue;
+//            } else {
+//                pointList.add(p);
+//            }
+//        }
+//        return pointList;
+//    }
     
     // a nearest neighbor in the set to point p; null if the set is empty 
-    public Point2D nearest(Point2D p) {
-        if (p == null) {
-            throw new IllegalArgumentException();
-        }
-        Point2D closest = kdTree.first();
-        for (Point2D iterPoint : kdTree) {
-            if (iterPoint.distanceTo(p) > closest.distanceTo(p)) {
-                continue;
-            } else {
-                closest = iterPoint;
-            }
-        }
-        return closest;
-    }
+//    public Point2D nearest(Point2D p) {
+//        if (p == null) {
+//            throw new IllegalArgumentException();
+//        }
+//        Point2D closest = kdTree.first();
+//        for (Point2D iterPoint : kdTree) {
+//            if (iterPoint.distanceTo(p) > closest.distanceTo(p)) {
+//                continue;
+//            } else {
+//                closest = iterPoint;
+//            }
+//        }
+//        return closest;
+//    }
     
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
+        KdTree testTree = new KdTree();
+        Double x = 0.372;
+        Double y = 0.497;
+        Point2D p = new Point2D(x, y);
+        System.out.println(testTree.isEmpty());
+        testTree.insert(p);
+        x = 0.564;
+        y = 0.413;
+        p = new Point2D(x, y);
+        testTree.insert(p);
+        System.out.println(testTree.contains(p));
+        System.out.println(testTree.size());
+        System.out.println(testTree.get(p));
+        System.out.println(testTree.isEmpty());
+        System.out.println(testTree.size());
+        x = 0.226;
+        y = 0.577;
+        p = new Point2D(x, y);
+        System.out.println(testTree.contains(p));
+        testTree.insert(p);
+        System.out.println(testTree.contains(p));
+        System.out.println(testTree.size());
+        System.out.println(testTree.get(p));
 
     }
 

@@ -55,6 +55,7 @@ public class PointSET {
         }
         ArrayList<Point2D> pointList = new ArrayList<Point2D>();
         for (Point2D p : bst) {
+            // All the 'ifs' below can be condensed to rect.contains(p)
             if (p.x() < rect.xmin()) {
                 continue;
             } else if (p.y() < rect.ymin()) {

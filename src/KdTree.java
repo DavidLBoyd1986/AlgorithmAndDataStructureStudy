@@ -13,9 +13,10 @@ public class KdTree {
     private static class Node implements Comparable{
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
+        private Node parent;    // the parent Node of this node
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
-        private boolean axis;   // true = x-axis ; false = y-axis
+        private boolean axis;   // true = vertical ; false = horizontal
         
         public boolean equals(Object that) {
             if (this == that) {
@@ -65,25 +66,34 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         
-        root = insert(root, p, true);
+        root = insert(root, null, p, true);
     }
 
-    private Node insert(Node x, Point2D p, boolean currentAxis) {
+    private Node insert(Node x, Node parent, Point2D p, boolean currentAxis) {
         if (x == null) {
             Node newNode = new Node(p, currentAxis);
+            newNode.parent = parent;
+            createLine(newNode);
             kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
             return newNode;
         }
         boolean nextAxis = !(currentAxis);
         int cmp = p.compareTo(x.p);
         if (cmp < 0) {
-            x.lb  = insert(x.lb, p, nextAxis);
+            x.lb  = insert(x.lb, x, p, nextAxis);
         } else if (cmp > 0) {
-            x.rt = insert(x.rt, p, nextAxis);
+            x.rt = insert(x.rt, x, p, nextAxis);
         } else {
             x.p = p;
         }
         return x;
+    }
+    
+    private void createLine(Node x) {
+        // Determine two end points based on axis and parent nodes
+        if (x.axis == true) {
+            
+        }
     }
     
     // does the set contain point p? 
@@ -128,27 +138,35 @@ public class KdTree {
     }
     
     // all points that are inside the rectangle (or on the boundary)
-//    public Iterable<Point2D> range(RectHV rect) {
-//        if (rect == null) {
-//            throw new IllegalArgumentException();
-//        }
-//        ArrayList<Point2D> pointList = new ArrayList<Point2D>();
-//        for (Point2D p : kdTree) {
-//            if (p.x() < rect.xmin()) {
-//                continue;
-//            } else if (p.y() < rect.ymin()) {
-//                continue;
-//            } else if (p.x() > rect.xmax()) {
-//                continue;
-//            } else if (p.y() > rect.ymax()) {
-//                continue;
-//            } else {
-//                pointList.add(p);
-//            }
-//        }
-//        return pointList;
-//    }
-    
+    public Iterable<Point2D> range(RectHV rect) {
+        if (rect == null) {
+            throw new IllegalArgumentException();
+        }
+        ArrayList<Point2D> pointList = new ArrayList<Point2D>();
+        root = range(rect, root, pointList);
+        return pointList;
+    }
+        
+    private Node range(RectHV rectangle, Node node, ArrayList<Point2D> pList) {
+        if (node == null) {
+            return null;
+        }
+        if (rectangle.contains(node.p)) {
+            pList.add(node.p);
+        }
+        // Determine how to know which way to go.
+        // ADD - If line intersects rectangle, check both branches
+        // TODO - above
+        // If left branch is closer to rectangle go that way
+        if (rectangle.distanceTo(node.lb.p) < rectangle.distanceTo(node.rt.p)) {
+            node = range(rectangle, node.lb, pList);
+            return node;
+        } else { // rectangle is down right branch, might add a check to be sure
+            node = range(rectangle, node.rt, pList);
+            return node;
+        }
+    }
+            
     // a nearest neighbor in the set to point p; null if the set is empty 
 //    public Point2D nearest(Point2D p) {
 //        if (p == null) {

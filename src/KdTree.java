@@ -91,8 +91,75 @@ public class KdTree {
     
     private void createLine(Node x) {
         // Determine two end points based on axis and parent nodes
-        if (x.axis == true) {
-            
+        Node parent = x; // gets set to parent at start of loop
+        if (parent.axis == true) { // vertical line, y-axis
+            x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), 1.0);
+            if (x.parent == null) { // if root return
+                return;
+            }
+            Double yMax = null;
+            Double yMin = null;
+            while (parent.parent != null) {
+                parent = parent.parent;
+                if (parent.axis == x.axis) { // Skip parents w/ vertical lines
+                    continue;
+                }
+                // If x.rect intersects parent rectangle, get new y points
+                if (x.rect.intersects(parent.rect)){
+                    // checks if parent is on max or min side,
+                    // then checks if parent line is closer than current min or max
+                    if ((parent.p.y() > x.p.y()) &&
+                        (x.rect.ymax() > parent.p.y())) {
+                        yMax = parent.p.y();
+                    } else if ((parent.p.y() < x.p.y()) &&
+                            (x.rect.ymin() < parent.p.y())){
+                        yMin = parent.p.y();
+                    }
+                }
+            } // Determine what points in the rectangle need updated, and update it
+            if ((yMax == null) && (yMin == null)) {
+                return;
+            } else if ((yMax == null) && (yMin != null)) {
+                x.rect = new RectHV(x.p.x(), yMin, x.p.x(), 1.0);
+            } else if ((yMax != null) && (yMin == null)) {
+                x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), yMax);
+            } else if ((yMax != null) && (yMin != null)) {
+                x.rect = new RectHV(x.p.x(), yMin, x.p.x(), yMax);
+            } 
+        } else { // Horizontal Line - x-axis
+            x.rect = new RectHV(0.0, x.p.y(), 1.0, x.p.y());
+            if (x.parent == null) { // if root return
+                return;
+            }
+            Double xMax = null;
+            Double xMin = null;
+            while (parent.parent != null) {
+                parent = parent.parent;
+                if (parent.axis == x.axis) { // Skip parents w/ horizontal lines
+                    continue;
+                }
+                // If x.rect intersects parent rectangle, get new x points
+                if (x.rect.intersects(parent.rect)){
+                    // checks if parent is on max or min side,
+                    // then checks if parent line is closer than current min or max
+                    if ((parent.p.x() > x.p.x()) &&
+                        (x.rect.xmax() > parent.p.x())) {
+                        xMax = parent.p.x();
+                    } else if ((parent.p.x() < x.p.x()) &&
+                            (x.rect.xmin() < parent.p.x())){
+                        xMin = parent.p.x();
+                    }
+                }
+            } // Determine what points in the rectangle need updated, and update it
+            if ((xMax == null) && (xMin == null)) {
+                return;
+            } else if ((xMax == null) && (xMin != null)) {
+                x.rect = new RectHV(xMin, x.p.y(), 1.0, x.p.y());
+            } else if ((xMax != null) && (xMin == null)) {
+                x.rect = new RectHV(0.0, x.p.y(), xMax, x.p.y());
+            } else if ((xMax != null) && (xMin != null)) {
+                x.rect = new RectHV(xMin, x.p.y(), xMax, x.p.y());
+            } 
         }
     }
     
@@ -128,11 +195,13 @@ public class KdTree {
             if (node.axis == true) {
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.setPenRadius();
-                StdDraw.line(node.p.x(), node.p.y(), 0, 0);
+                StdDraw.line(node.rect.xmin(), node.rect.ymin(),
+                             node.rect.xmax(), node.rect.ymax());
             } else {
                 StdDraw.setPenColor(StdDraw.BLUE);
                 StdDraw.setPenRadius();
-                StdDraw.line(0, 0, 0, 0);
+                StdDraw.line(node.rect.xmin(), node.rect.ymin(),
+                        node.rect.xmax(), node.rect.ymax());
             }
         }
     }
@@ -207,7 +276,7 @@ public class KdTree {
         System.out.println(testTree.contains(p));
         System.out.println(testTree.size());
         System.out.println(testTree.get(p));
-
+        testTree.draw();
     }
 
 }

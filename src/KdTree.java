@@ -1,9 +1,11 @@
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.StdOut;
 
 
 public class KdTree {
@@ -75,6 +77,7 @@ public class KdTree {
             newNode.parent = parent;
             createLine(newNode);
             kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
+            draw();
             return newNode;
         }
         boolean nextAxis = !(currentAxis);
@@ -253,30 +256,48 @@ public class KdTree {
 //    }
     
     public static void main(String[] args) {
-        KdTree testTree = new KdTree();
-        Double x = 0.372;
-        Double y = 0.497;
-        Point2D p = new Point2D(x, y);
-        System.out.println(testTree.isEmpty());
-        testTree.insert(p);
-        x = 0.564;
-        y = 0.413;
-        p = new Point2D(x, y);
-        testTree.insert(p);
-        System.out.println(testTree.contains(p));
-        System.out.println(testTree.size());
-        System.out.println(testTree.get(p));
-        System.out.println(testTree.isEmpty());
-        System.out.println(testTree.size());
-        x = 0.226;
-        y = 0.577;
-        p = new Point2D(x, y);
-        System.out.println(testTree.contains(p));
-        testTree.insert(p);
-        System.out.println(testTree.contains(p));
-        System.out.println(testTree.size());
-        System.out.println(testTree.get(p));
-        testTree.draw();
+//        KdTree testTree = new KdTree();
+//        Double xTest = 0.372;
+//        Double yTest = 0.497;
+//        Point2D pTest = new Point2D(xTest, yTest);
+//        System.out.println(testTree.isEmpty());
+//        testTree.insert(pTest);
+//        xTest = 0.564;
+//        yTest = 0.413;
+//        pTest = new Point2D(xTest, yTest);
+//        testTree.insert(pTest);
+//        System.out.println(testTree.contains(pTest));
+//        System.out.println(testTree.size());
+//        System.out.println(testTree.get(pTest));
+//        System.out.println(testTree.isEmpty());
+//        System.out.println(testTree.size());
+//        xTest = 0.226;
+//        yTest = 0.577;
+//        pTest = new Point2D(xTest, yTest);
+//        System.out.println(testTree.contains(pTest));
+//        testTree.insert(pTest);
+//        System.out.println(testTree.contains(pTest));
+//        System.out.println(testTree.size());
+//        System.out.println(testTree.get(pTest));
+//        testTree.draw();
+        
+        // Test Two
+        KdTree testTwo = new KdTree();    
+        String[] files = new String[1];
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\circle10.txt";
+
+        // for each command-line argument
+        for (String filename : files) {
+            // read in the board specified in the filename
+            In in = new In(filename);
+            while (!in.isEmpty()) {
+                double x = in.readDouble();
+                double y = in.readDouble();
+                Point2D p = new Point2D(x, y);
+                testTwo.insert(p);
+            }
+        }
+        testTwo.draw();
     }
 
 }

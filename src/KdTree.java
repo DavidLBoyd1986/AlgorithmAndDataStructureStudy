@@ -81,52 +81,74 @@ public class KdTree {
             return newNode;
         }
         boolean nextAxis = !(currentAxis);
-        int cmp = p.compareTo(x.p);
+        // Compare based on axis
+        int cmp = pointCompare(x, p, currentAxis);
+        
         if (cmp < 0) {
             x.lb  = insert(x.lb, x, p, nextAxis);
-        } else if (cmp > 0) {
-            x.rt = insert(x.rt, x, p, nextAxis);
         } else {
-            x.p = p;
+            x.rt = insert(x.rt, x, p, nextAxis);
         }
         return x;
     }
     
+    private int pointCompare(Node x, Point2D p, boolean axis) {
+        int cmp = 0;
+        if (axis == true) {
+            if (p.x() < x.p.x()) {
+                cmp = -1;
+            } else if (p.x() > x.p.x()) {
+                cmp = 1;
+            } else {
+                cmp = 0;
+            }
+        } else {
+            if (p.y() < x.p.y()) {
+                cmp = -1;
+            } else if (p.y() > x.p.y()) {
+                cmp = 1;
+            } else {
+                cmp = 0;
+            }
+        }
+        return cmp;
+    }
+    
     private void createLine(Node x) {
         // Determine two end points based on axis and parent nodes
-        Node parent = x; // gets set to parent at start of loop
-        if (parent.axis == true) { // vertical line, y-axis
+        Node iterNode = x; // gets set to parent at start of loop
+        if (iterNode.axis == true) { // vertical line, y-axis
             x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), 1.0);
             if (x.parent == null) { // if root return
                 return;
             }
-            Double yMax = null;
-            Double yMin = null;
-            while (parent.parent != null) {
-                parent = parent.parent;
-                if (parent.axis == x.axis) { // Skip parents w/ vertical lines
+            Double yMax = x.rect.ymax();
+            Double yMin = x.rect.ymin();
+            while (iterNode.parent != null) {
+                iterNode = iterNode.parent;
+                if (iterNode.axis == x.axis) { // Skip parents w/ vertical lines
                     continue;
                 }
                 // If x.rect intersects parent rectangle, get new y points
-                if (x.rect.intersects(parent.rect)){
+                if (x.rect.intersects(iterNode.rect)){
                     // checks if parent is on max or min side,
                     // then checks if parent line is closer than current min or max
-                    if ((parent.p.y() > x.p.y()) &&
-                        (x.rect.ymax() > parent.p.y())) {
-                        yMax = parent.p.y();
-                    } else if ((parent.p.y() < x.p.y()) &&
-                            (x.rect.ymin() < parent.p.y())){
-                        yMin = parent.p.y();
+                    if ((iterNode.p.y() > x.p.y()) &&
+                        (x.rect.ymax() > iterNode.p.y())) {
+                        yMax = iterNode.p.y();
+                    } else if ((iterNode.p.y() <= x.p.y()) &&
+                            (yMin < iterNode.p.y())){
+                        yMin = iterNode.p.y();
                     }
                 }
             } // Determine what points in the rectangle need updated, and update it
-            if ((yMax == null) && (yMin == null)) {
+            if ((yMax == x.rect.ymax()) && (yMin == x.rect.ymin())) {
                 return;
-            } else if ((yMax == null) && (yMin != null)) {
+            } else if ((yMax == x.rect.ymax()) && (yMin != x.rect.ymin())) {
                 x.rect = new RectHV(x.p.x(), yMin, x.p.x(), 1.0);
-            } else if ((yMax != null) && (yMin == null)) {
+            } else if ((yMax != x.rect.ymax()) && (yMin == x.rect.ymin())) {
                 x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), yMax);
-            } else if ((yMax != null) && (yMin != null)) {
+            } else if ((yMax != x.rect.ymax()) && (yMin != x.rect.ymin())) {
                 x.rect = new RectHV(x.p.x(), yMin, x.p.x(), yMax);
             } 
         } else { // Horizontal Line - x-axis
@@ -134,33 +156,33 @@ public class KdTree {
             if (x.parent == null) { // if root return
                 return;
             }
-            Double xMax = null;
-            Double xMin = null;
-            while (parent.parent != null) {
-                parent = parent.parent;
-                if (parent.axis == x.axis) { // Skip parents w/ horizontal lines
+            Double xMax = x.rect.xmax();
+            Double xMin = x.rect.xmin();
+            while (iterNode.parent != null) {
+                iterNode = iterNode.parent;
+                if (iterNode.axis == x.axis) { // Skip parents w/ horizontal lines
                     continue;
                 }
                 // If x.rect intersects parent rectangle, get new x points
-                if (x.rect.intersects(parent.rect)){
+                if (x.rect.intersects(iterNode.rect)){
                     // checks if parent is on max or min side,
                     // then checks if parent line is closer than current min or max
-                    if ((parent.p.x() > x.p.x()) &&
-                        (x.rect.xmax() > parent.p.x())) {
-                        xMax = parent.p.x();
-                    } else if ((parent.p.x() < x.p.x()) &&
-                            (x.rect.xmin() < parent.p.x())){
-                        xMin = parent.p.x();
+                    if ((iterNode.p.x() > x.p.x()) &&
+                        (xMax > iterNode.p.x())) {
+                        xMax = iterNode.p.x();
+                    } else if ((iterNode.p.x() <= x.p.x()) &&
+                            (xMin < iterNode.p.x())){
+                        xMin = iterNode.p.x();
                     }
                 }
             } // Determine what points in the rectangle need updated, and update it
-            if ((xMax == null) && (xMin == null)) {
+            if ((xMax == x.rect.xmax()) && (xMin == x.rect.xmin())) {
                 return;
-            } else if ((xMax == null) && (xMin != null)) {
+            } else if ((xMax == x.rect.xmax()) && (xMin != x.rect.xmin())) {
                 x.rect = new RectHV(xMin, x.p.y(), 1.0, x.p.y());
-            } else if ((xMax != null) && (xMin == null)) {
+            } else if ((xMax != x.rect.xmax()) && (xMin ==  x.rect.xmin())) {
                 x.rect = new RectHV(0.0, x.p.y(), xMax, x.p.y());
-            } else if ((xMax != null) && (xMin != null)) {
+            } else if ((xMax != x.rect.xmax()) && (xMin !=  x.rect.xmin())) {
                 x.rect = new RectHV(xMin, x.p.y(), xMax, x.p.y());
             } 
         }

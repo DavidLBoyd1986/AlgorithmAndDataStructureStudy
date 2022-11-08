@@ -75,7 +75,7 @@ public class KdTree {
         if (x == null) {
             Node newNode = new Node(p, currentAxis);
             newNode.parent = parent;
-            createLine(newNode);
+            createRect(newNode);
             kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
             draw();
             return newNode;
@@ -113,80 +113,47 @@ public class KdTree {
         }
         return cmp;
     }
-    
-    private void createLine(Node x) {
-        // Determine two end points based on axis and parent nodes
+
+    private void createRect(Node x) {
+        // Set rect to entire grid, then update edge points based on parent points
+        x.rect = new RectHV(0, 0, 1, 1);
         Node iterNode = x; // gets set to parent at start of loop
-        if (iterNode.axis == true) { // vertical line, y-axis
-            x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), 1.0);
-            if (x.parent == null) { // if root return
-                return;
-            }
-            Double yMax = x.rect.ymax();
-            Double yMin = x.rect.ymin();
-            while (iterNode.parent != null) {
-                iterNode = iterNode.parent;
-                if (iterNode.axis == x.axis) { // Skip parents w/ vertical lines
-                    continue;
-                }
-                // If x.rect intersects parent rectangle, get new y points
-                if (x.rect.intersects(iterNode.rect)){
-                    // checks if parent is on max or min side,
-                    // then checks if parent line is closer than current min or max
-                    if ((iterNode.p.y() > x.p.y()) &&
-                        (x.rect.ymax() > iterNode.p.y())) {
-                        yMax = iterNode.p.y();
-                    } else if ((iterNode.p.y() <= x.p.y()) &&
-                            (yMin < iterNode.p.y())){
-                        yMin = iterNode.p.y();
-                    }
-                }
-            } // Determine what points in the rectangle need updated, and update it
-            if ((yMax == x.rect.ymax()) && (yMin == x.rect.ymin())) {
-                return;
-            } else if ((yMax == x.rect.ymax()) && (yMin != x.rect.ymin())) {
-                x.rect = new RectHV(x.p.x(), yMin, x.p.x(), 1.0);
-            } else if ((yMax != x.rect.ymax()) && (yMin == x.rect.ymin())) {
-                x.rect = new RectHV(x.p.x(), 0.0, x.p.x(), yMax);
-            } else if ((yMax != x.rect.ymax()) && (yMin != x.rect.ymin())) {
-                x.rect = new RectHV(x.p.x(), yMin, x.p.x(), yMax);
-            } 
-        } else { // Horizontal Line - x-axis
-            x.rect = new RectHV(0.0, x.p.y(), 1.0, x.p.y());
-            if (x.parent == null) { // if root return
-                return;
-            }
-            Double xMax = x.rect.xmax();
-            Double xMin = x.rect.xmin();
-            while (iterNode.parent != null) {
-                iterNode = iterNode.parent;
-                if (iterNode.axis == x.axis) { // Skip parents w/ horizontal lines
-                    continue;
-                }
-                // If x.rect intersects parent rectangle, get new x points
-                if (x.rect.intersects(iterNode.rect)){
-                    // checks if parent is on max or min side,
-                    // then checks if parent line is closer than current min or max
-                    if ((iterNode.p.x() > x.p.x()) &&
-                        (xMax > iterNode.p.x())) {
-                        xMax = iterNode.p.x();
-                    } else if ((iterNode.p.x() <= x.p.x()) &&
-                            (xMin < iterNode.p.x())){
-                        xMin = iterNode.p.x();
-                    }
-                }
-            } // Determine what points in the rectangle need updated, and update it
-            if ((xMax == x.rect.xmax()) && (xMin == x.rect.xmin())) {
-                return;
-            } else if ((xMax == x.rect.xmax()) && (xMin != x.rect.xmin())) {
-                x.rect = new RectHV(xMin, x.p.y(), 1.0, x.p.y());
-            } else if ((xMax != x.rect.xmax()) && (xMin ==  x.rect.xmin())) {
-                x.rect = new RectHV(0.0, x.p.y(), xMax, x.p.y());
-            } else if ((xMax != x.rect.xmax()) && (xMin !=  x.rect.xmin())) {
-                x.rect = new RectHV(xMin, x.p.y(), xMax, x.p.y());
-            } 
+        if (x.parent == null) { // if root return, its rect is entire grid
+            return;
         }
+        Double yMax = x.rect.ymax();
+        Double yMin = x.rect.ymin();
+        Double xMax = x.rect.xmax();
+        Double xMin = x.rect.xmin();
+        while (iterNode.parent != null) {
+            iterNode = iterNode.parent;
+            if (iterNode.axis) { // Vertical Orientation, update x-axis
+                // checks if parent is on max or min side,
+                // then checks if parent line is closer than current min or max
+                if ((iterNode.p.x() > x.p.x()) &&
+                    (xMax > iterNode.p.x())) {
+                    xMax = iterNode.p.x();
+                } else if ((iterNode.p.x() <= x.p.x()) &&
+                        (xMin < iterNode.p.x())){
+                    xMin = iterNode.p.x();
+                }
+            } else { // Horizontal Orientation, update y-axis
+                // checks if parent is on max or min side,
+                // then checks if parent line is closer than current min or max
+                if ((iterNode.p.y() > x.p.y()) &&
+                    (x.rect.ymax() > iterNode.p.y())) {
+                    yMax = iterNode.p.y();
+                } else if ((iterNode.p.y() <= x.p.y()) &&
+                        (yMin < iterNode.p.y())){
+                    yMin = iterNode.p.y();
+                }
+            }
+        }
+        // Create rect with its edges updated based on parents points.
+        x.rect = new RectHV(xMin, yMin, xMax, yMax);
     }
+
+
     
     // does the set contain point p? 
     public boolean contains(Point2D p) {
@@ -217,16 +184,17 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.BLACK);
             StdDraw.setPenRadius(0.01);
             node.p.draw();
+            // Don't need createLine, can just draw the axis based on orientation
             if (node.axis == true) {
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.setPenRadius();
-                StdDraw.line(node.rect.xmin(), node.rect.ymin(),
-                             node.rect.xmax(), node.rect.ymax());
+                StdDraw.line(node.p.x(), node.rect.ymin(),
+                             node.p.x(), node.rect.ymax());
             } else {
                 StdDraw.setPenColor(StdDraw.BLUE);
                 StdDraw.setPenRadius();
-                StdDraw.line(node.rect.xmin(), node.rect.ymin(),
-                        node.rect.xmax(), node.rect.ymax());
+                StdDraw.line(node.rect.xmin(), node.p.y(),
+                        node.rect.xmax(), node.p.y());
             }
         }
     }

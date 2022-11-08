@@ -232,20 +232,37 @@ public class KdTree {
     }
             
     // a nearest neighbor in the set to point p; null if the set is empty 
-//    public Point2D nearest(Point2D p) {
-//        if (p == null) {
-//            throw new IllegalArgumentException();
-//        }
-//        Point2D closest = kdTree.first();
-//        for (Point2D iterPoint : kdTree) {
-//            if (iterPoint.distanceTo(p) > closest.distanceTo(p)) {
-//                continue;
-//            } else {
-//                closest = iterPoint;
-//            }
-//        }
-//        return closest;
-//    }
+    public Point2D nearest(Point2D p) {
+        if (p == null) {
+            throw new IllegalArgumentException();
+        }
+        Node nearestNode = nearest(root, p, null);
+        return nearestNode.p;
+    }
+    
+    private Node nearest(Node node, Point2D p, Point2D nearestP) {
+        if (node == null) {
+            return null;
+        }
+        nearestP = node.p; // get node's point
+        if (node.lb != null) {
+            // if the current nearest point is closer than lb rectangle, prune lb
+            if (nearestP.distanceTo(p) < node.lb.rect.distanceTo(p)) {
+                return node;
+            } else {
+                node = nearest(node.lb, p, nearestP);
+            }
+        }
+        if (node.rt != null) {
+            // if the current nearest point is closer than rt rectangle, prune rt
+            if (nearestP.distanceTo(p) < node.rt.rect.distanceTo(p)) {
+                return node;
+            } else {
+                node = nearest(node.rt, p, nearestP);
+            }
+        }
+        return node;
+    }
     
     public static void main(String[] args) {
 //        KdTree testTree = new KdTree();

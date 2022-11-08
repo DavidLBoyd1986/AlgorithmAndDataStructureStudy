@@ -1,18 +1,18 @@
 import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.LinkedList;
 
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.StdOut;
 
 
 public class KdTree {
 
     private Node root;
+    private int size;
 
-    private static class Node implements Comparable{
+    private static class Node{
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
         private Node parent;    // the parent Node of this node
@@ -34,32 +34,26 @@ public class KdTree {
             return false;
         }
         
-        public int compareTo(Object that) {
-            Node other = (Node) that;
-            return this.p.compareTo(other.p);
-        }
-        
         public Node(Point2D initP, boolean initAxis) {
             p = initP;
             axis = initAxis;
         }
      }
 
-    private TreeSet<Node> kdTree;
-
     // construct an empty set of points
     public KdTree() {
-        kdTree = new TreeSet<Node>();
+        size = 0;
+        root = null;
     }
     
     // is the set empty?
     public boolean isEmpty() {
-        return kdTree.isEmpty();
+        return root == null;
     }
     
     // number of points in the set 
     public int size() {
-        return kdTree.size();
+        return size;
     }
     
     // add the point to the set (if it is not already in the set)
@@ -76,8 +70,8 @@ public class KdTree {
             Node newNode = new Node(p, currentAxis);
             newNode.parent = parent;
             createRect(newNode);
-            kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
             draw();
+            size++;
             return newNode;
         }
         boolean nextAxis = !(currentAxis);
@@ -164,7 +158,7 @@ public class KdTree {
     }
     
     
-    public Point2D get(Point2D p) {
+    private Point2D get(Point2D p) {
         return get(root, p);
     }
     
@@ -179,8 +173,9 @@ public class KdTree {
     }
     
     // draw all points to standard draw 
-    public void draw() {
-        for (Node node : kdTree) {
+    public void draw() {   
+        LinkedList<Node> nodes = getNodes();
+        for (Node node : nodes) {
             StdDraw.setPenColor(StdDraw.BLACK);
             StdDraw.setPenRadius(0.01);
             node.p.draw();
@@ -197,6 +192,22 @@ public class KdTree {
                         node.rect.xmax(), node.p.y());
             }
         }
+    }
+    
+    private LinkedList<Node> getNodes() {
+        Node temp = root;
+        LinkedList<Node> nodeList = new LinkedList<Node>();
+        getNodes(temp, nodeList);
+        return nodeList;
+    }
+    
+    private void getNodes(Node node, LinkedList<Node> nodeList) {
+        if (node == null) {
+            return;
+        }
+        nodeList.add(node);
+        getNodes(node.lb, nodeList);
+        getNodes(node.rt, nodeList);
     }
     
     // all points that are inside the rectangle (or on the boundary)

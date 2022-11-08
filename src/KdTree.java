@@ -15,7 +15,6 @@ public class KdTree {
     private static class Node implements Comparable{
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
-        private RectHV line;    // the line created on the grid when drawn
         private Node parent;    // the parent Node of this node
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
@@ -76,7 +75,6 @@ public class KdTree {
         if (x == null) {
             Node newNode = new Node(p, currentAxis);
             newNode.parent = parent;
-            createLine(newNode);
             createRect(newNode);
             kdTree.add(newNode); // Have to add Nodes to tree, even though the nodes link to themselves
             draw();
@@ -117,10 +115,9 @@ public class KdTree {
     }
 
     private void createRect(Node x) {
-        // Set rect to entire grid, then update corner points based on parent points
+        // Set rect to entire grid, then update edge points based on parent points
         x.rect = new RectHV(0, 0, 1, 1);
         Node iterNode = x; // gets set to parent at start of loop
-
         if (x.parent == null) { // if root return, its rect is entire grid
             return;
         }
@@ -152,83 +149,11 @@ public class KdTree {
                 }
             }
         }
-        // Create rect with it's corners updated based on parents points.
+        // Create rect with its edges updated based on parents points.
         x.rect = new RectHV(xMin, yMin, xMax, yMax);
     }
 
-    private void createLine(Node x) {
-        // Determine two end points based on axis and parent nodes
-        Node iterNode = x; // gets set to parent at start of loop
-        if (iterNode.axis == true) { // vertical line, y-axis
-            x.line = new RectHV(x.p.x(), 0.0, x.p.x(), 1.0);
-            if (x.parent == null) { // if root return
-                return;
-            }
-            Double yMax = x.line.ymax();
-            Double yMin = x.line.ymin();
-            while (iterNode.parent != null) {
-                iterNode = iterNode.parent;
-                if (iterNode.axis == x.axis) { // Skip parents w/ vertical lines
-                    continue;
-                }
-                // If x.rect intersects parent rectangle, get new y points
-                if (x.line.intersects(iterNode.line)){
-                    // checks if parent is on max or min side,
-                    // then checks if parent line is closer than current min or max
-                    if ((iterNode.p.y() > x.p.y()) &&
-                        (x.line.ymax() > iterNode.p.y())) {
-                        yMax = iterNode.p.y();
-                    } else if ((iterNode.p.y() <= x.p.y()) &&
-                            (yMin < iterNode.p.y())){
-                        yMin = iterNode.p.y();
-                    }
-                }
-            } // Determine what points in the rectangle need updated, and update it
-            if ((yMax == x.line.ymax()) && (yMin == x.line.ymin())) {
-                return;
-            } else if ((yMax == x.line.ymax()) && (yMin != x.line.ymin())) {
-                x.line = new RectHV(x.p.x(), yMin, x.p.x(), 1.0);
-            } else if ((yMax != x.line.ymax()) && (yMin == x.line.ymin())) {
-                x.line = new RectHV(x.p.x(), 0.0, x.p.x(), yMax);
-            } else if ((yMax != x.line.ymax()) && (yMin != x.line.ymin())) {
-                x.line = new RectHV(x.p.x(), yMin, x.p.x(), yMax);
-            } 
-        } else { // Horizontal Line - x-axis
-            x.line = new RectHV(0.0, x.p.y(), 1.0, x.p.y());
-            if (x.parent == null) { // if root return
-                return;
-            }
-            Double xMax = x.line.xmax();
-            Double xMin = x.line.xmin();
-            while (iterNode.parent != null) {
-                iterNode = iterNode.parent;
-                if (iterNode.axis == x.axis) { // Skip parents w/ horizontal lines
-                    continue;
-                }
-                // If x.rect intersects parent rectangle, get new x points
-                if (x.line.intersects(iterNode.line)){
-                    // checks if parent is on max or min side,
-                    // then checks if parent line is closer than current min or max
-                    if ((iterNode.p.x() > x.p.x()) &&
-                        (xMax > iterNode.p.x())) {
-                        xMax = iterNode.p.x();
-                    } else if ((iterNode.p.x() <= x.p.x()) &&
-                            (xMin < iterNode.p.x())){
-                        xMin = iterNode.p.x();
-                    }
-                }
-            } // Determine what points in the rectangle need updated, and update it
-            if ((xMax == x.line.xmax()) && (xMin == x.line.xmin())) {
-                return;
-            } else if ((xMax == x.line.xmax()) && (xMin != x.line.xmin())) {
-                x.line = new RectHV(xMin, x.p.y(), 1.0, x.p.y());
-            } else if ((xMax != x.line.xmax()) && (xMin ==  x.line.xmin())) {
-                x.line = new RectHV(0.0, x.p.y(), xMax, x.p.y());
-            } else if ((xMax != x.line.xmax()) && (xMin !=  x.line.xmin())) {
-                x.line = new RectHV(xMin, x.p.y(), xMax, x.p.y());
-            } 
-        }
-    }
+
     
     // does the set contain point p? 
     public boolean contains(Point2D p) {
@@ -263,13 +188,13 @@ public class KdTree {
             if (node.axis == true) {
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.setPenRadius();
-                StdDraw.line(node.line.xmin(), node.line.ymin(),
-                             node.line.xmax(), node.line.ymax());
+                StdDraw.line(node.p.x(), node.rect.ymin(),
+                             node.p.x(), node.rect.ymax());
             } else {
                 StdDraw.setPenColor(StdDraw.BLUE);
                 StdDraw.setPenRadius();
-                StdDraw.line(node.line.xmin(), node.line.ymin(),
-                        node.line.xmax(), node.line.ymax());
+                StdDraw.line(node.rect.xmin(), node.p.y(),
+                        node.rect.xmax(), node.p.y());
             }
         }
     }

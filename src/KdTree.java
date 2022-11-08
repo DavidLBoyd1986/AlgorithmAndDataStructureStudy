@@ -220,13 +220,15 @@ public class KdTree {
         // ADD - If line intersects rectangle, check both branches
         // TODO - above
         // If left branch is closer to rectangle go that way
-        if (rectangle.distanceTo(node.lb.p) < rectangle.distanceTo(node.rt.p)) {
+        if ((node.lb != null) && (node.lb.rect.intersects(rectangle))) {
             node = range(rectangle, node.lb, pList);
             return node;
-        } else { // rectangle is down right branch, might add a check to be sure
+        }
+        if ((node.rt != null) && (node.rt.rect.intersects(rectangle))) {
             node = range(rectangle, node.rt, pList);
             return node;
         }
+        return node;
     }
             
     // a nearest neighbor in the set to point p; null if the set is empty 

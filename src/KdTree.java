@@ -65,6 +65,7 @@ public class KdTree {
         root = insert(root, null, p, true);
     }
 
+    // Have to carry the parent's min and max for point's axis down
     private Node insert(Node x, Node parent, Point2D p, boolean currentAxis) {
         if (x == null) {
             Node newNode = new Node(p, currentAxis);
@@ -304,7 +305,7 @@ public class KdTree {
         // Test Two
         KdTree testTwo = new KdTree();    
         String[] files = new String[1];
-        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\circle10.txt";
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input80k.txt";
 
         // for each command-line argument
         for (String filename : files) {
@@ -318,6 +319,7 @@ public class KdTree {
             }
         }
         testTwo.draw();
+        System.out.println(testTwo.size());
     }
 
 }

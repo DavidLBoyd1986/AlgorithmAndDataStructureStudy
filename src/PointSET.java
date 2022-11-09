@@ -76,6 +76,9 @@ public class PointSET {
         if (p == null) {
             throw new IllegalArgumentException();
         }
+        if (bst.isEmpty()) {
+            return null;
+        }
         Point2D closest = bst.first();
         for (Point2D iterPoint : bst) {
             if (iterPoint.distanceTo(p) > closest.distanceTo(p)) {

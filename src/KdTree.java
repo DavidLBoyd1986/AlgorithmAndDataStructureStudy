@@ -222,13 +222,13 @@ public class KdTree {
         }
         ArrayList<Point2D> pointList = new ArrayList<Point2D>();
         Node temp = root;
-        temp = range(rect, temp, pointList);
+        range(rect, temp, pointList);
         return pointList;
     }
         
-    private Node range(RectHV rectangle, Node node, ArrayList<Point2D> pList) {
+    private void range(RectHV rectangle, Node node, ArrayList<Point2D> pList) {
         if (node == null) {
-            return null;
+            return;
         }
         if (rectangle.contains(node.p)) {
             pList.add(node.p);
@@ -237,15 +237,15 @@ public class KdTree {
         // ADD - If line intersects rectangle, check both branches
         // TODO - above
         // If left branch is closer to rectangle go that way
-        if ((node.lb != null) && (node.lb.rect.intersects(rectangle))) {
-            node = range(rectangle, node.lb, pList);
-            return node;
+        if ((node.lb != null) && (rectangle.intersects(node.lb.rect))) {
+            range(rectangle, node.lb, pList);
+            //return node;
         }
-        if ((node.rt != null) && (node.rt.rect.intersects(rectangle))) {
-            node = range(rectangle, node.rt, pList);
-            return node;
+        if ((node.rt != null) && (rectangle.intersects(node.rt.rect))) {
+            range(rectangle, node.rt, pList);
+            //return node;
         }
-        return node;
+        return;
     }
             
     // a nearest neighbor in the set to point p; null if the set is empty 
@@ -260,6 +260,9 @@ public class KdTree {
     
     private Node nearest(Node node, Point2D p, Point2D nearestP) {
         if (node == null) {
+            return null;
+        }
+        if (this.isEmpty()) {
             return null;
         }
         nearestP = node.p; // get node's point
@@ -319,7 +322,7 @@ public class KdTree {
         // Test Two
         KdTree testTwo = new KdTree();    
         String[] files = new String[1];
-        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10k.txt";
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10.txt";
 
         // for each command-line argument
         for (String filename : files) {
@@ -334,6 +337,8 @@ public class KdTree {
         }
         //testTwo.draw();
         System.out.println(testTwo.size());
+        RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
+        System.out.println(testTwo.range(testRect));
     }
 
 }

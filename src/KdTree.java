@@ -72,9 +72,11 @@ public class KdTree {
             Node newNode = new Node(point, currentAxis);
             newNode.parent = parent;
             newNode.rect = new RectHV(xMin, yMin, xMax, yMax);
-            draw();
             size++;
             return newNode;
+        }
+        if (node.p.equals(point)) {
+            return node;
         }
         if (currentAxis) { // Vertical Orientation, update x-axis
             // checks if parent is on max or min side,
@@ -140,17 +142,39 @@ public class KdTree {
     }
     
     private Point2D get(Point2D p) {
-        return get(root, p);
+        return get(root, p, true);
     }
     
-    private Point2D get(Node x, Point2D p) {
+    private Point2D get(Node x, Point2D p, boolean axis) {
         if (p == null) throw new IllegalArgumentException("calls get() with a null key");
         if (x == null) return null;
+        if (x.p.equals(p)) {
+            return x.p;
+        }
         // Add if to check x or y depending on orientation
-        int cmp = p.compareTo(x.p);
-        if      (cmp < 0) return get(x.lb, p);
-        else if (cmp > 0) return get(x.rt, p);
+        int cmp = pointCompareGet(x, p, axis);
+        axis = !(axis);
+        if      (cmp < 0) return get(x.lb, p, axis);
+        else if (cmp > 0) return get(x.rt, p, axis);
         else              return x.p;
+    }
+    
+    private int pointCompareGet(Node x, Point2D p, boolean axis) {
+        int cmp = 0;
+        if (axis == true) {
+            if (p.x() < x.p.x()) {
+                cmp = -1;
+            } else if (p.x() >= x.p.x()) {
+                cmp = 1;
+            }
+        } else {
+            if (p.y() < x.p.y()) {
+                cmp = -1;
+            } else if (p.y() >= x.p.y()) {
+                cmp = 1;
+            }
+        }
+        return cmp;
     }
     
     // draw all points to standard draw 
@@ -229,7 +253,8 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        Node nearestNode = nearest(root, p, null);
+        Node temp = root;
+        Node nearestNode = nearest(temp, p, null);
         return nearestNode.p;
     }
     
@@ -282,11 +307,19 @@ public class KdTree {
 //        System.out.println(testTree.size());
 //        System.out.println(testTree.get(pTest));
 //        testTree.draw();
+//        
+//        xTest = 0.1;
+//        yTest = 0.222;
+//        pTest = new Point2D(xTest, yTest);
+//        testTree.insert(pTest);
+//        yTest = 0.333;
+//        Point2D pTestTwo = new Point2D(xTest, yTest);
+//        System.out.println(testTree.contains(pTestTwo));
         
         // Test Two
         KdTree testTwo = new KdTree();    
         String[] files = new String[1];
-        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10.txt";
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10k.txt";
 
         // for each command-line argument
         for (String filename : files) {
@@ -299,7 +332,7 @@ public class KdTree {
                 testTwo.insert(p);
             }
         }
-        testTwo.draw();
+        //testTwo.draw();
         System.out.println(testTwo.size());
     }
 

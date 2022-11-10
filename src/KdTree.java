@@ -62,29 +62,51 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         
-        root = insert(root, null, p, true);
+        root = insert(root, null, p, true, 0.0, 0.0, 1.0, 1.0);
     }
 
     // Have to carry the parent's min and max for point's axis down
-    private Node insert(Node x, Node parent, Point2D p, boolean currentAxis) {
-        if (x == null) {
-            Node newNode = new Node(p, currentAxis);
+    private Node insert(Node node, Node parent, Point2D point, boolean currentAxis,
+                        Double xMin, Double yMin, Double xMax, Double yMax) {
+        if (node == null) {
+            Node newNode = new Node(point, currentAxis);
             newNode.parent = parent;
-            createRect(newNode);
+            newNode.rect = new RectHV(xMin, yMin, xMax, yMax);
             draw();
             size++;
             return newNode;
         }
+        if (currentAxis) { // Vertical Orientation, update x-axis
+            // checks if parent is on max or min side,
+            // then checks if parent line is closer than current min or max
+            if ((node.p.x() > point.x()) &&
+                (xMax > node.p.x())) {
+                xMax = node.p.x();
+            } else if ((node.p.x() <= point.x()) &&
+                    (xMin < node.p.x())){
+                xMin = node.p.x();
+            }
+        } else { // Horizontal Orientation, update y-axis
+            // checks if parent is on max or min side,
+            // then checks if parent line is closer than current min or max
+            if ((node.p.y() > point.y()) &&
+                (yMax > node.p.y())) {
+                yMax = node.p.y();
+            } else if ((node.p.y() <= point.y()) &&
+                    (yMin < node.p.y())){
+                yMin = node.p.y();
+            }
+        }
         boolean nextAxis = !(currentAxis);
         // Compare based on axis
-        int cmp = pointCompare(x, p, currentAxis);
+        int cmp = pointCompare(node, point, currentAxis);
         
         if (cmp < 0) {
-            x.lb  = insert(x.lb, x, p, nextAxis);
+            node.lb  = insert(node.lb, node, point, nextAxis, xMin, yMin, xMax, yMax);
         } else {
-            x.rt = insert(x.rt, x, p, nextAxis);
+            node.rt = insert(node.rt, node, point, nextAxis, xMin, yMin, xMax, yMax);
         }
-        return x;
+        return node;
     }
     
     private int pointCompare(Node x, Point2D p, boolean axis) {
@@ -108,47 +130,6 @@ public class KdTree {
         }
         return cmp;
     }
-
-    private void createRect(Node x) {
-        // Set rect to entire grid, then update edge points based on parent points
-        x.rect = new RectHV(0, 0, 1, 1);
-        Node iterNode = x; // gets set to parent at start of loop
-        if (x.parent == null) { // if root return, its rect is entire grid
-            return;
-        }
-        Double yMax = x.rect.ymax();
-        Double yMin = x.rect.ymin();
-        Double xMax = x.rect.xmax();
-        Double xMin = x.rect.xmin();
-        while (iterNode.parent != null) {
-            iterNode = iterNode.parent;
-            if (iterNode.axis) { // Vertical Orientation, update x-axis
-                // checks if parent is on max or min side,
-                // then checks if parent line is closer than current min or max
-                if ((iterNode.p.x() > x.p.x()) &&
-                    (xMax > iterNode.p.x())) {
-                    xMax = iterNode.p.x();
-                } else if ((iterNode.p.x() <= x.p.x()) &&
-                        (xMin < iterNode.p.x())){
-                    xMin = iterNode.p.x();
-                }
-            } else { // Horizontal Orientation, update y-axis
-                // checks if parent is on max or min side,
-                // then checks if parent line is closer than current min or max
-                if ((iterNode.p.y() > x.p.y()) &&
-                    (x.rect.ymax() > iterNode.p.y())) {
-                    yMax = iterNode.p.y();
-                } else if ((iterNode.p.y() <= x.p.y()) &&
-                        (yMin < iterNode.p.y())){
-                    yMin = iterNode.p.y();
-                }
-            }
-        }
-        // Create rect with its edges updated based on parents points.
-        x.rect = new RectHV(xMin, yMin, xMax, yMax);
-    }
-
-
     
     // does the set contain point p? 
     public boolean contains(Point2D p) {
@@ -157,7 +138,6 @@ public class KdTree {
         }
         return get(p) != null;
     }
-    
     
     private Point2D get(Point2D p) {
         return get(root, p);
@@ -217,7 +197,8 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         ArrayList<Point2D> pointList = new ArrayList<Point2D>();
-        root = range(rect, root, pointList);
+        Node temp = root;
+        temp = range(rect, temp, pointList);
         return pointList;
     }
         
@@ -305,7 +286,7 @@ public class KdTree {
         // Test Two
         KdTree testTwo = new KdTree();    
         String[] files = new String[1];
-        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input80k.txt";
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10.txt";
 
         // for each command-line argument
         for (String filename : files) {

@@ -197,7 +197,8 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         ArrayList<Point2D> pointList = new ArrayList<Point2D>();
-        root = range(rect, root, pointList);
+        Node temp = root;
+        temp = range(rect, temp, pointList);
         return pointList;
     }
         
@@ -285,7 +286,7 @@ public class KdTree {
         // Test Two
         KdTree testTwo = new KdTree();    
         String[] files = new String[1];
-        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input80k.txt";
+        files[0] = "C:\\Users\\David\\Desktop\\IT_Coding\\Java\\Princeton_Class\\Code\\Inputs\\kdtree\\input10.txt";
 
         // for each command-line argument
         for (String filename : files) {

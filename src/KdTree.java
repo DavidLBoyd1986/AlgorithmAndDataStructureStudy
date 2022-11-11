@@ -15,7 +15,6 @@ public class KdTree {
     private static class Node{
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
-        private Node parent;    // the parent Node of this node
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
         private boolean axis;   // true = vertical ; false = horizontal
@@ -70,7 +69,6 @@ public class KdTree {
                         Double xMin, Double yMin, Double xMax, Double yMax) {
         if (node == null) {
             Node newNode = new Node(point, currentAxis);
-            newNode.parent = parent;
             newNode.rect = new RectHV(xMin, yMin, xMax, yMax);
             size++;
             return newNode;
@@ -233,9 +231,6 @@ public class KdTree {
         if (rectangle.contains(node.p)) {
             pList.add(node.p);
         }
-        // Determine how to know which way to go.
-        // ADD - If line intersects rectangle, check both branches
-        // TODO - above
         // If left branch is closer to rectangle go that way
         if ((node.lb != null) && (rectangle.intersects(node.lb.rect))) {
             range(rectangle, node.lb, pList);
@@ -254,7 +249,8 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         Node temp = root;
-        Node nearestNode = nearest(temp, p, null);
+        Point2D nearestP = temp.p; // get node's point
+        Node nearestNode = nearest(temp, p, nearestP);
         return nearestNode.p;
     }
     
@@ -265,7 +261,9 @@ public class KdTree {
         if (this.isEmpty()) {
             return null;
         }
-        nearestP = node.p; // get node's point
+        if (nearestP.distanceTo(p) > node.p.distanceTo(p)) {
+            nearestP = node.p;
+        }
         if (node.lb != null) {
             // if the current nearest point is closer than lb rectangle, prune lb
             if (nearestP.distanceTo(p) < node.lb.rect.distanceTo(p)) {
@@ -338,7 +336,9 @@ public class KdTree {
         //testTwo.draw();
         System.out.println(testTwo.size());
         RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
-        System.out.println(testTwo.range(testRect));
+        //System.out.println(testTwo.range(testRect));
+        Point2D nearestPoint = new Point2D(0.1, 0.1);
+        System.out.println(testTwo.nearest(nearestPoint));
     }
 
 }

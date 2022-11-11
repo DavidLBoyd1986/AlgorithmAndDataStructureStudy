@@ -250,15 +250,15 @@ public class KdTree {
         }
         Node temp = root;
         Point2D nearestP = temp.p; // get node's point
-        Node nearestNode = nearest(temp, p, nearestP);
-        return nearestNode.p;
+        nearestP = nearest(temp, p, nearestP);
+        return nearestP;
     }
     
-    private Node nearest(Node node, Point2D p, Point2D nearestP) {
-        if (node == null) {
+    private Point2D nearest(Node node, Point2D p, Point2D nearestP) {
+        if (this.isEmpty()) {
             return null;
         }
-        if (this.isEmpty()) {
+        if (node == null) {
             return null;
         }
         if (nearestP.distanceTo(p) > node.p.distanceTo(p)) {
@@ -266,21 +266,21 @@ public class KdTree {
         }
         if (node.lb != null) {
             // if the current nearest point is closer than lb rectangle, prune lb
-            if (nearestP.distanceTo(p) < node.lb.rect.distanceTo(p)) {
-                return node;
+            if (nearestP.distanceTo(p) < node.lb.rect.distanceSquaredTo(p)) {
+                return nearestP;
             } else {
-                node = nearest(node.lb, p, nearestP);
+                nearestP = nearest(node.lb, p, nearestP);
             }
         }
         if (node.rt != null) {
             // if the current nearest point is closer than rt rectangle, prune rt
-            if (nearestP.distanceTo(p) < node.rt.rect.distanceTo(p)) {
-                return node;
+            if (nearestP.distanceTo(p) < node.rt.rect.distanceSquaredTo(p)) {
+                return nearestP;
             } else {
-                node = nearest(node.rt, p, nearestP);
+                nearestP = nearest(node.rt, p, nearestP);
             }
         }
-        return node;
+        return nearestP;
     }
     
     public static void main(String[] args) {
@@ -337,7 +337,7 @@ public class KdTree {
         System.out.println(testTwo.size());
         RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
         //System.out.println(testTwo.range(testRect));
-        Point2D nearestPoint = new Point2D(0.1, 0.1);
+        Point2D nearestPoint = new Point2D(0.633, 0.823);
         System.out.println(testTwo.nearest(nearestPoint));
     }
 

@@ -265,47 +265,51 @@ public class KdTree {
         if (nearestP.distanceSquaredTo(p) > node.p.distanceSquaredTo(p)) {
             nearestP = node.p;
         }
-        if (node.lb != null) {
-            // if the current nearest point is closer than lb rectangle, prune lb
-            if (nearestP.distanceSquaredTo(p) < node.lb.rect.distanceSquaredTo(p)) {
-                return nearestP;
-            }
-        }
-        if (node.rt != null) {
-            // if the current nearest point is closer than rt rectangle, prune rt
-            if (nearestP.distanceSquaredTo(p) < node.rt.rect.distanceSquaredTo(p)) {
-                return nearestP;
-            }
-        }
         if (axis) { // Vertical Orientation
             if ((node.lb != null) && (node.rt != null)) {
                 // Left Branch is closer
                 if (Math.abs(node.lb.p.x() - p.x()) < Math.abs(node.rt.p.x() - p.x())) {
                     nearestP = nearest(node.lb, p, nearestP, false);
-                    nearestP = nearest(node.rt, p, nearestP, false);
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, false);
+                    } 
                 } else { // Right branch is closer
                     nearestP = nearest(node.rt, p, nearestP, false);
-                    nearestP = nearest(node.lb, p, nearestP, false);
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, false);
+                    }               
                 }
-            } else if (node.rt == null) {
-                nearestP = nearest(node.lb, p, nearestP, false);
-            } else {
-                nearestP = nearest(node.rt, p, nearestP, false);
+            } else if ((node.rt == null) && (node.lb != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.lb, p, nearestP, false);
+                }   
+            } else if ((node.lb == null) && (node.rt != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.rt, p, nearestP, false);
+                } 
             }
         } else { // Horizontal Orientation
             if ((node.lb != null) && (node.rt != null)) {
                 // Left Branch is closer
                 if (Math.abs(node.lb.p.y() - p.y()) < Math.abs(node.rt.p.y() - p.y())) {
                     nearestP = nearest(node.lb, p, nearestP, true);
-                    nearestP = nearest(node.rt, p, nearestP, true);
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, true);
+                    }
                 } else { // Right Branch is closer
                     nearestP = nearest(node.rt, p, nearestP, true);
-                    nearestP = nearest(node.lb, p, nearestP, true);
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, true);
+                    }    
                 }
-            } else if (node.rt == null) {
-                nearestP = nearest(node.lb, p, nearestP, true);
-            } else {
-                nearestP = nearest(node.rt, p, nearestP, true);
+            } else if ((node.rt == null) && (node.lb != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.lb, p, nearestP, true);
+                }   
+            } else if ((node.lb == null) && (node.rt != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.rt, p, nearestP, true);
+                } 
             }
         }
         return nearestP;
@@ -365,7 +369,7 @@ public class KdTree {
         System.out.println(testTwo.size());
         RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
         //System.out.println(testTwo.range(testRect));
-        Point2D nearestPoint = new Point2D(0.633, 0.823);
+        Point2D nearestPoint = new Point2D(0.79, 0.57);
         System.out.println(testTwo.nearest(nearestPoint));
     }
 

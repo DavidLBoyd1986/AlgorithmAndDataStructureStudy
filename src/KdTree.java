@@ -248,36 +248,64 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        Node temp = root;
-        Point2D nearestP = temp.p; // get node's point
-        nearestP = nearest(temp, p, nearestP);
-        return nearestP;
-    }
-    
-    private Point2D nearest(Node node, Point2D p, Point2D nearestP) {
         if (this.isEmpty()) {
             return null;
         }
+        Node temp = root;
+        Point2D nearestP = temp.p; // get node's point
+        nearestP = nearest(temp, p, nearestP, true);
+        return nearestP;
+    }
+    
+    private static Point2D nearest(Node node, Point2D p, Point2D nearestP, boolean axis) {
+
         if (node == null) {
-            return null;
+            return nearestP;
         }
-        if (nearestP.distanceTo(p) > node.p.distanceTo(p)) {
+        if (nearestP.distanceSquaredTo(p) > node.p.distanceSquaredTo(p)) {
             nearestP = node.p;
         }
         if (node.lb != null) {
             // if the current nearest point is closer than lb rectangle, prune lb
-            if (nearestP.distanceTo(p) < node.lb.rect.distanceSquaredTo(p)) {
+            if (nearestP.distanceSquaredTo(p) < node.lb.rect.distanceSquaredTo(p)) {
                 return nearestP;
-            } else {
-                nearestP = nearest(node.lb, p, nearestP);
             }
         }
         if (node.rt != null) {
             // if the current nearest point is closer than rt rectangle, prune rt
-            if (nearestP.distanceTo(p) < node.rt.rect.distanceSquaredTo(p)) {
+            if (nearestP.distanceSquaredTo(p) < node.rt.rect.distanceSquaredTo(p)) {
                 return nearestP;
+            }
+        }
+        if (axis) { // Vertical Orientation
+            if ((node.lb != null) && (node.rt != null)) {
+                // Left Branch is closer
+                if (Math.abs(node.lb.p.x() - p.x()) < Math.abs(node.rt.p.x() - p.x())) {
+                    nearestP = nearest(node.lb, p, nearestP, false);
+                    nearestP = nearest(node.rt, p, nearestP, false);
+                } else { // Right branch is closer
+                    nearestP = nearest(node.rt, p, nearestP, false);
+                    nearestP = nearest(node.lb, p, nearestP, false);
+                }
+            } else if (node.rt == null) {
+                nearestP = nearest(node.lb, p, nearestP, false);
             } else {
-                nearestP = nearest(node.rt, p, nearestP);
+                nearestP = nearest(node.rt, p, nearestP, false);
+            }
+        } else { // Horizontal Orientation
+            if ((node.lb != null) && (node.rt != null)) {
+                // Left Branch is closer
+                if (Math.abs(node.lb.p.y() - p.y()) < Math.abs(node.rt.p.y() - p.y())) {
+                    nearestP = nearest(node.lb, p, nearestP, true);
+                    nearestP = nearest(node.rt, p, nearestP, true);
+                } else { // Right Branch is closer
+                    nearestP = nearest(node.rt, p, nearestP, true);
+                    nearestP = nearest(node.lb, p, nearestP, true);
+                }
+            } else if (node.rt == null) {
+                nearestP = nearest(node.lb, p, nearestP, true);
+            } else {
+                nearestP = nearest(node.rt, p, nearestP, true);
             }
         }
         return nearestP;

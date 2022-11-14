@@ -12,18 +12,23 @@ public class KdTree {
     private Node root;
     private int size;
 
-    private static class Node{
+    private static class Node {
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
         private boolean axis;   // true = vertical ; false = horizontal
         
+        public Node(Point2D initP, boolean initAxis) {
+            p = initP;
+            axis = initAxis;
+        }
+
         public boolean equals(Object that) {
             if (this == that) {
                 return true;
             }
-            if (!(this instanceof Node)) {
+            if (this.getClass() != that.getClass()) {
                 return false;
             }
             Node other = (Node) that;
@@ -31,11 +36,6 @@ public class KdTree {
                 return true;
             }
             return false;
-        }
-        
-        public Node(Point2D initP, boolean initAxis) {
-            p = initP;
-            axis = initAxis;
         }
      }
 
@@ -61,12 +61,12 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         
-        root = insert(root, null, p, true, 0.0, 0.0, 1.0, 1.0);
+        root = insert(root, p, true, 0.0, 0.0, 1.0, 1.0);
     }
 
     // Have to carry the parent's min and max for point's axis down
-    private Node insert(Node node, Node parent, Point2D point, boolean currentAxis,
-                        Double xMin, Double yMin, Double xMax, Double yMax) {
+    private Node insert(Node node, Point2D point, boolean currentAxis,
+                        double xMin, double yMin, double xMax, double yMax) {
         if (node == null) {
             Node newNode = new Node(point, currentAxis);
             newNode.rect = new RectHV(xMin, yMin, xMax, yMax);
@@ -83,7 +83,7 @@ public class KdTree {
                 (xMax > node.p.x())) {
                 xMax = node.p.x();
             } else if ((node.p.x() <= point.x()) &&
-                    (xMin < node.p.x())){
+                    (xMin < node.p.x())) {
                 xMin = node.p.x();
             }
         } else { // Horizontal Orientation, update y-axis
@@ -93,7 +93,7 @@ public class KdTree {
                 (yMax > node.p.y())) {
                 yMax = node.p.y();
             } else if ((node.p.y() <= point.y()) &&
-                    (yMin < node.p.y())){
+                    (yMin < node.p.y())) {
                 yMin = node.p.y();
             }
         }
@@ -102,16 +102,16 @@ public class KdTree {
         int cmp = pointCompare(node, point, currentAxis);
         
         if (cmp < 0) {
-            node.lb  = insert(node.lb, node, point, nextAxis, xMin, yMin, xMax, yMax);
+            node.lb  = insert(node.lb, point, nextAxis, xMin, yMin, xMax, yMax);
         } else {
-            node.rt = insert(node.rt, node, point, nextAxis, xMin, yMin, xMax, yMax);
+            node.rt = insert(node.rt, point, nextAxis, xMin, yMin, xMax, yMax);
         }
         return node;
     }
     
     private int pointCompare(Node x, Point2D p, boolean axis) {
         int cmp = 0;
-        if (axis == true) {
+        if (axis) {
             if (p.x() < x.p.x()) {
                 cmp = -1;
             } else if (p.x() > x.p.x()) {
@@ -159,7 +159,7 @@ public class KdTree {
     
     private int pointCompareGet(Node x, Point2D p, boolean axis) {
         int cmp = 0;
-        if (axis == true) {
+        if (axis) {
             if (p.x() < x.p.x()) {
                 cmp = -1;
             } else if (p.x() >= x.p.x()) {
@@ -183,7 +183,7 @@ public class KdTree {
             StdDraw.setPenRadius(0.01);
             node.p.draw();
             // Don't need createLine, can just draw the axis based on orientation
-            if (node.axis == true) {
+            if (node.axis) {
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.setPenRadius();
                 StdDraw.line(node.p.x(), node.rect.ymin(),
@@ -234,11 +234,9 @@ public class KdTree {
         // If left branch is closer to rectangle go that way
         if ((node.lb != null) && (rectangle.intersects(node.lb.rect))) {
             range(rectangle, node.lb, pList);
-            //return node;
         }
         if ((node.rt != null) && (rectangle.intersects(node.rt.rect))) {
             range(rectangle, node.rt, pList);
-            //return node;
         }
         return;
     }
@@ -257,7 +255,7 @@ public class KdTree {
         return nearestP;
     }
     
-    private static Point2D nearest(Node node, Point2D p, Point2D nearestP, boolean axis) {
+    private Point2D nearest(Node node, Point2D p, Point2D nearestP, boolean axis) {
 
         if (node == null) {
             return nearestP;
@@ -265,16 +263,21 @@ public class KdTree {
         if (nearestP.distanceSquaredTo(p) > node.p.distanceSquaredTo(p)) {
             nearestP = node.p;
         }
+        // All the if's below are for pruning. Need a better pruning method
         if (axis) { // Vertical Orientation
             if ((node.lb != null) && (node.rt != null)) {
                 // Left Branch is closer
                 if (Math.abs(node.lb.p.x() - p.x()) < Math.abs(node.rt.p.x() - p.x())) {
-                    nearestP = nearest(node.lb, p, nearestP, false);
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, false);
+                    }    
                     if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
                         nearestP = nearest(node.rt, p, nearestP, false);
                     } 
                 } else { // Right branch is closer
-                    nearestP = nearest(node.rt, p, nearestP, false);
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, false);
+                    } 
                     if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
                         nearestP = nearest(node.lb, p, nearestP, false);
                     }               
@@ -292,12 +295,16 @@ public class KdTree {
             if ((node.lb != null) && (node.rt != null)) {
                 // Left Branch is closer
                 if (Math.abs(node.lb.p.y() - p.y()) < Math.abs(node.rt.p.y() - p.y())) {
-                    nearestP = nearest(node.lb, p, nearestP, true);
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, true);
+                    }  
                     if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
                         nearestP = nearest(node.rt, p, nearestP, true);
                     }
                 } else { // Right Branch is closer
-                    nearestP = nearest(node.rt, p, nearestP, true);
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, true);
+                    }
                     if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
                         nearestP = nearest(node.lb, p, nearestP, true);
                     }    
@@ -365,10 +372,9 @@ public class KdTree {
                 testTwo.insert(p);
             }
         }
-        //testTwo.draw();
+        // testTwo.draw();
         System.out.println(testTwo.size());
-        RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
-        //System.out.println(testTwo.range(testRect));
+        // System.out.println(testTwo.range(testRect));
         Point2D nearestPoint = new Point2D(0.79, 0.57);
         System.out.println(testTwo.nearest(nearestPoint));
     }

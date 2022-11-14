@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
@@ -24,18 +25,21 @@ public class KdTree {
             axis = initAxis;
         }
 
-        public boolean equals(Object that) {
-            if (this == that) {
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
                 return true;
-            }
-            if (this.getClass() != that.getClass()) {
+            if (obj == null)
                 return false;
-            }
-            Node other = (Node) that;
-            if (this.p == other.p) {
-                return true;
-            }
-            return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Node other = (Node) obj;
+            return Objects.equals(p, other.p);
+        }
+        
+        @Override
+        public int hashCode() {
+            return Objects.hash(p);
         }
      }
 
@@ -263,60 +267,32 @@ public class KdTree {
         if (nearestP.distanceSquaredTo(p) > node.p.distanceSquaredTo(p)) {
             nearestP = node.p;
         }
-        // All the if's below are for pruning. Need a better pruning method
         if (axis) { // Vertical Orientation
-            if ((node.lb != null) && (node.rt != null)) {
-                // Left Branch is closer
-                if (Math.abs(node.lb.p.x() - p.x()) < Math.abs(node.rt.p.x() - p.x())) {
-                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.lb, p, nearestP, false);
-                    }    
-                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.rt, p, nearestP, false);
-                    } 
-                } else { // Right branch is closer
-                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.rt, p, nearestP, false);
-                    } 
-                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.lb, p, nearestP, false);
-                    }               
-                }
-            } else if ((node.rt == null) && (node.lb != null)) {
-                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+            // Left Branch is closer
+            if (p.x() < node.p.x()) {
                     nearestP = nearest(node.lb, p, nearestP, false);
-                }   
-            } else if ((node.lb == null) && (node.rt != null)) {
-                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                if ((node.rt != null) && (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p))) {
                     nearestP = nearest(node.rt, p, nearestP, false);
                 } 
+            } else { // Right branch is closer
+                    nearestP = nearest(node.rt, p, nearestP, false);
+                if ((node.lb != null) && (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p))) {
+                    nearestP = nearest(node.lb, p, nearestP, false);
+                }               
             }
+
         } else { // Horizontal Orientation
-            if ((node.lb != null) && (node.rt != null)) {
-                // Left Branch is closer
-                if (Math.abs(node.lb.p.y() - p.y()) < Math.abs(node.rt.p.y() - p.y())) {
-                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.lb, p, nearestP, true);
-                    }  
-                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.rt, p, nearestP, true);
-                    }
-                } else { // Right Branch is closer
-                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.rt, p, nearestP, true);
-                    }
-                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
-                        nearestP = nearest(node.lb, p, nearestP, true);
-                    }    
-                }
-            } else if ((node.rt == null) && (node.lb != null)) {
-                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+            // Left Branch is closer
+            if (p.y() < node.p.y()) {
                     nearestP = nearest(node.lb, p, nearestP, true);
-                }   
-            } else if ((node.lb == null) && (node.rt != null)) {
-                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                if ((node.rt != null) && (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p))) {
                     nearestP = nearest(node.rt, p, nearestP, true);
-                } 
+                }
+            } else { // Right Branch is closer
+                    nearestP = nearest(node.rt, p, nearestP, true);
+                if ((node.lb != null) && (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p))) {
+                    nearestP = nearest(node.lb, p, nearestP, true);
+                }    
             }
         }
         return nearestP;

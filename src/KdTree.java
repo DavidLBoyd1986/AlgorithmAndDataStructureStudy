@@ -12,19 +12,23 @@ public class KdTree {
     private Node root;
     private int size;
 
-    private static class Node{
+    private static class Node {
         private Point2D p;      // the point
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
-        private Node parent;    // the parent Node of this node
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
         private boolean axis;   // true = vertical ; false = horizontal
         
+        public Node(Point2D initP, boolean initAxis) {
+            p = initP;
+            axis = initAxis;
+        }
+
         public boolean equals(Object that) {
             if (this == that) {
                 return true;
             }
-            if (!(this instanceof Node)) {
+            if (this.getClass() != that.getClass()) {
                 return false;
             }
             Node other = (Node) that;
@@ -32,11 +36,6 @@ public class KdTree {
                 return true;
             }
             return false;
-        }
-        
-        public Node(Point2D initP, boolean initAxis) {
-            p = initP;
-            axis = initAxis;
         }
      }
 
@@ -62,15 +61,14 @@ public class KdTree {
             throw new IllegalArgumentException();
         }
         
-        root = insert(root, null, p, true, 0.0, 0.0, 1.0, 1.0);
+        root = insert(root, p, true, 0.0, 0.0, 1.0, 1.0);
     }
 
     // Have to carry the parent's min and max for point's axis down
-    private Node insert(Node node, Node parent, Point2D point, boolean currentAxis,
-                        Double xMin, Double yMin, Double xMax, Double yMax) {
+    private Node insert(Node node, Point2D point, boolean currentAxis,
+                        double xMin, double yMin, double xMax, double yMax) {
         if (node == null) {
             Node newNode = new Node(point, currentAxis);
-            newNode.parent = parent;
             newNode.rect = new RectHV(xMin, yMin, xMax, yMax);
             size++;
             return newNode;
@@ -85,7 +83,7 @@ public class KdTree {
                 (xMax > node.p.x())) {
                 xMax = node.p.x();
             } else if ((node.p.x() <= point.x()) &&
-                    (xMin < node.p.x())){
+                    (xMin < node.p.x())) {
                 xMin = node.p.x();
             }
         } else { // Horizontal Orientation, update y-axis
@@ -95,7 +93,7 @@ public class KdTree {
                 (yMax > node.p.y())) {
                 yMax = node.p.y();
             } else if ((node.p.y() <= point.y()) &&
-                    (yMin < node.p.y())){
+                    (yMin < node.p.y())) {
                 yMin = node.p.y();
             }
         }
@@ -104,16 +102,16 @@ public class KdTree {
         int cmp = pointCompare(node, point, currentAxis);
         
         if (cmp < 0) {
-            node.lb  = insert(node.lb, node, point, nextAxis, xMin, yMin, xMax, yMax);
+            node.lb  = insert(node.lb, point, nextAxis, xMin, yMin, xMax, yMax);
         } else {
-            node.rt = insert(node.rt, node, point, nextAxis, xMin, yMin, xMax, yMax);
+            node.rt = insert(node.rt, point, nextAxis, xMin, yMin, xMax, yMax);
         }
         return node;
     }
     
     private int pointCompare(Node x, Point2D p, boolean axis) {
         int cmp = 0;
-        if (axis == true) {
+        if (axis) {
             if (p.x() < x.p.x()) {
                 cmp = -1;
             } else if (p.x() > x.p.x()) {
@@ -161,7 +159,7 @@ public class KdTree {
     
     private int pointCompareGet(Node x, Point2D p, boolean axis) {
         int cmp = 0;
-        if (axis == true) {
+        if (axis) {
             if (p.x() < x.p.x()) {
                 cmp = -1;
             } else if (p.x() >= x.p.x()) {
@@ -185,7 +183,7 @@ public class KdTree {
             StdDraw.setPenRadius(0.01);
             node.p.draw();
             // Don't need createLine, can just draw the axis based on orientation
-            if (node.axis == true) {
+            if (node.axis) {
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.setPenRadius();
                 StdDraw.line(node.p.x(), node.rect.ymin(),
@@ -233,17 +231,12 @@ public class KdTree {
         if (rectangle.contains(node.p)) {
             pList.add(node.p);
         }
-        // Determine how to know which way to go.
-        // ADD - If line intersects rectangle, check both branches
-        // TODO - above
         // If left branch is closer to rectangle go that way
         if ((node.lb != null) && (rectangle.intersects(node.lb.rect))) {
             range(rectangle, node.lb, pList);
-            //return node;
         }
         if ((node.rt != null) && (rectangle.intersects(node.rt.rect))) {
             range(rectangle, node.rt, pList);
-            //return node;
         }
         return;
     }
@@ -253,36 +246,80 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        Node temp = root;
-        Node nearestNode = nearest(temp, p, null);
-        return nearestNode.p;
-    }
-    
-    private Node nearest(Node node, Point2D p, Point2D nearestP) {
-        if (node == null) {
-            return null;
-        }
         if (this.isEmpty()) {
             return null;
         }
-        nearestP = node.p; // get node's point
-        if (node.lb != null) {
-            // if the current nearest point is closer than lb rectangle, prune lb
-            if (nearestP.distanceTo(p) < node.lb.rect.distanceTo(p)) {
-                return node;
-            } else {
-                node = nearest(node.lb, p, nearestP);
+        Node temp = root;
+        Point2D nearestP = temp.p; // get node's point
+        nearestP = nearest(temp, p, nearestP, true);
+        return nearestP;
+    }
+    
+    private Point2D nearest(Node node, Point2D p, Point2D nearestP, boolean axis) {
+
+        if (node == null) {
+            return nearestP;
+        }
+        if (nearestP.distanceSquaredTo(p) > node.p.distanceSquaredTo(p)) {
+            nearestP = node.p;
+        }
+        // All the if's below are for pruning. Need a better pruning method
+        if (axis) { // Vertical Orientation
+            if ((node.lb != null) && (node.rt != null)) {
+                // Left Branch is closer
+                if (Math.abs(node.lb.p.x() - p.x()) < Math.abs(node.rt.p.x() - p.x())) {
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, false);
+                    }    
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, false);
+                    } 
+                } else { // Right branch is closer
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, false);
+                    } 
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, false);
+                    }               
+                }
+            } else if ((node.rt == null) && (node.lb != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.lb, p, nearestP, false);
+                }   
+            } else if ((node.lb == null) && (node.rt != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.rt, p, nearestP, false);
+                } 
+            }
+        } else { // Horizontal Orientation
+            if ((node.lb != null) && (node.rt != null)) {
+                // Left Branch is closer
+                if (Math.abs(node.lb.p.y() - p.y()) < Math.abs(node.rt.p.y() - p.y())) {
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, true);
+                    }  
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, true);
+                    }
+                } else { // Right Branch is closer
+                    if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.rt, p, nearestP, true);
+                    }
+                    if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                        nearestP = nearest(node.lb, p, nearestP, true);
+                    }    
+                }
+            } else if ((node.rt == null) && (node.lb != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.lb.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.lb, p, nearestP, true);
+                }   
+            } else if ((node.lb == null) && (node.rt != null)) {
+                if (nearestP.distanceSquaredTo(p) > node.rt.rect.distanceSquaredTo(p)) {
+                    nearestP = nearest(node.rt, p, nearestP, true);
+                } 
             }
         }
-        if (node.rt != null) {
-            // if the current nearest point is closer than rt rectangle, prune rt
-            if (nearestP.distanceTo(p) < node.rt.rect.distanceTo(p)) {
-                return node;
-            } else {
-                node = nearest(node.rt, p, nearestP);
-            }
-        }
-        return node;
+        return nearestP;
     }
     
     public static void main(String[] args) {
@@ -335,10 +372,11 @@ public class KdTree {
                 testTwo.insert(p);
             }
         }
-        //testTwo.draw();
+        // testTwo.draw();
         System.out.println(testTwo.size());
-        RectHV testRect = new RectHV(0.0, 0.0, 1.0, 1.0);
-        System.out.println(testTwo.range(testRect));
+        // System.out.println(testTwo.range(testRect));
+        Point2D nearestPoint = new Point2D(0.79, 0.57);
+        System.out.println(testTwo.nearest(nearestPoint));
     }
 
 }

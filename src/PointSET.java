@@ -81,7 +81,7 @@ public class PointSET {
         }
         Point2D closest = bst.first();
         for (Point2D iterPoint : bst) {
-            if (iterPoint.distanceTo(p) > closest.distanceTo(p)) {
+            if (iterPoint.distanceSquaredTo(p) > closest.distanceSquaredTo(p)) {
                 continue;
             } else {
                 closest = iterPoint;
